@@ -74,11 +74,3 @@ cat templates/cloud-init.yaml.template | \
     > build/cloud-init.yaml
 
 echo -e "${GREEN}✓ cloud-init.yaml has been generated in the build directory${NC}"
-echo
-echo "To use this configuration:"
-echo "1. Copy your .env file to the server or use the environment variables"
-echo "2. Upload the cloud-init.yaml file to your cloud provider"
-echo "3. Create a new instance using this cloud-init configuration"
-echo
-echo "To test the configuration locally:"
-echo "./test-setup.sh"

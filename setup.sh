@@ -215,4 +215,4 @@ echo "2. Run './build.sh' to generate your cloud-init configuration"
 echo "3. Use the generated configuration to deploy your server"
 echo
 echo "To test your configuration:"
-echo "./test-setup.sh"
+echo "./test.sh"
