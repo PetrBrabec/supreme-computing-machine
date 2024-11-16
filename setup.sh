@@ -86,7 +86,7 @@ CADDY_ACME_EMAIL=$(prompt_with_default "Enter email for Let's Encrypt certificat
 # Repository Configuration
 echo -e "\n${BLUE}Repository Configuration${NC}"
 echo "-----------------------"
-SETUP_REPOSITORY=$(prompt_with_default "Enter the git repository URL" "https://github.com/PetrBrabec/the-setup.git")
+SETUP_REPOSITORY=$(prompt_with_default "Enter the git repository URL" "https://github.com/PetrBrabec/supreme-computing-machine.git")
 
 # PostgreSQL Configuration
 echo -e "\n${BLUE}PostgreSQL Configuration${NC}"

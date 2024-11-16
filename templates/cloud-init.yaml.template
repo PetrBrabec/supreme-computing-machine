@@ -69,8 +69,8 @@ runcmd:
   
   # Clone the repository
   - cd /root
-  - git clone {{SETUP_REPOSITORY}} the-setup
-  - cd the-setup
+  - git clone {{SETUP_REPOSITORY}} supreme-computing-machine
+  - cd supreme-computing-machine
   
   # Create scripts directory
   - mkdir -p /root/scripts
