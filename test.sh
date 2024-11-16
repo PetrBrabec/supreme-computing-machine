@@ -8,8 +8,10 @@ NC='\033[0m' # No Color
 
 # Function to print section headers
 print_header() {
-    echo -e "\n${BLUE}$1${NC}"
-    echo "$(printf '=%.0s' {1..${#1}})"
+    local title="$1"
+    local len=${#title}
+    echo -e "\n${BLUE}${title}${NC}"
+    printf '%*s\n' "$len" | tr ' ' '='
 }
 
 # Function to check if a variable is set and not empty

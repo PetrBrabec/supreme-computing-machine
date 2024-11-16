@@ -7,7 +7,16 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Handle Ctrl+C gracefully
-trap 'echo -e "\n\nSetup cancelled"; exit 1' SIGINT
+trap 'echo -e "\n\nSetup cancelled by user"; exit 1' SIGINT
+
+# Check for existing .env file
+if [ -f .env ]; then
+    echo -e "\n${RED}Error: .env file already exists${NC}"
+    echo "To reconfigure, please:"
+    echo "1. Remove the existing .env file: rm .env"
+    echo "2. Run this script again"
+    exit 1
+fi
 
 # Parse command line arguments
 USE_DEFAULTS=false
@@ -67,15 +76,6 @@ echo
 echo "This script will help you configure your environment."
 echo "Press Enter to accept the default values or input your own."
 echo
-
-# Check if .env already exists
-if [ -f .env ]; then
-    read -p "An .env file already exists. Do you want to overwrite it? (y/N) " overwrite
-    if [[ ! $overwrite =~ ^[Yy]$ ]]; then
-        echo "Setup cancelled"
-        exit 1
-    fi
-fi
 
 # Domain Configuration
 echo -e "\n${BLUE}Domain Configuration${NC}"
@@ -138,7 +138,7 @@ KC_DB_PASSWORD=$(prompt_with_default "Keycloak database password" "$(generate_pa
 echo -e "\n${BLUE}Backup Configuration${NC}"
 echo "--------------------"
 RESTIC_PASSWORD=$(prompt_with_default "Restic backup password" "$(generate_password)" "RESTIC_PASSWORD" true)
-BACKUP_CRON=$(prompt_with_default "Backup cron schedule" "0 3 * * *")
+BACKUP_CRON=$(prompt_with_default "Backup schedule (cron format)" "0 2 * * *")
 BACKUP_VOLUME_DEVICE=$(prompt_with_default "Backup volume device" "/dev/sdb")
 
 # Telegram Configuration
