@@ -19,13 +19,13 @@ write_files:
       POSTGRES_DB=${POSTGRES_DB}
       POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
       POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
-      
+
       # Appwrite Configuration
       _APP_ENV=${APP_ENV}
       _APP_OPENSSL_KEY_V1=${APP_OPENSSL_KEY}
       _APP_DOMAIN=${APP_DOMAIN}
       _APP_DOMAIN_TARGET=${APP_DOMAIN}
-      
+
       # Baserow Configuration
       SECRET_KEY=${BASEROW_SECRET_KEY}
       DATABASE_PASSWORD=${BASEROW_DB_PASSWORD}
@@ -36,7 +36,7 @@ write_files:
       # Minio Configuration
       MINIO_ROOT_USER=${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      
+
       # Redis Configuration
       REDIS_PASSWORD=${REDIS_PASSWORD}
 
@@ -49,19 +49,19 @@ write_files:
       KC_DB_PASSWORD=${KC_DB_PASSWORD}
       KC_HOSTNAME=${KC_HOSTNAME}
       KC_PROXY=${KC_PROXY}
-      
-      # Telegram Configuration
+
+      # Backup Configuration
+      RESTIC_PASSWORD=${RESTIC_PASSWORD}
+      BACKUP_CRON="${BACKUP_CRON}"
+      BACKUP_VOLUME_DEVICE=${BACKUP_VOLUME_DEVICE}
       TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      
-      # Backup Schedule (cron format)
-      BACKUP_VOLUME_DEVICE=${BACKUP_VOLUME_DEVICE}
-      BACKUP_CRON=${BACKUP_CRON}
-      RESTIC_PASSWORD=${RESTIC_PASSWORD}
       RESTIC_REPOSITORY=/mnt/backup/restic-repo
 
 runcmd:
-  # Set up firewall
+  # Configure firewall
+  - ufw default deny incoming
+  - ufw default allow outgoing
   - ufw allow 22/tcp
   - ufw allow 80/tcp
   - ufw allow 443/tcp
@@ -72,33 +72,27 @@ runcmd:
   - git clone ${SETUP_REPOSITORY} supreme-computing-machine
   - cd supreme-computing-machine
   
-  # Create scripts directory
-  - mkdir -p /root/scripts
-  
   # Copy configuration files
-  - cp docker-compose.yml /root/
-  - cp Caddyfile /root/
-  - cp -r scripts /root/
+  - cp /root/.env .env
   
   # Make scripts executable
-  - chmod +x /root/scripts/*.sh
+  - chmod +x scripts/*.sh
   
-  # Set up backup volume and initial backup
-  - /root/scripts/mount-backup-volume.sh
+  # Mount backup volume and initialize
+  - ./scripts/mount-backup-volume.sh
   
   # Set up backup cron job
-  - echo "${BACKUP_CRON} root /root/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
+  - echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
   
   # Start services
-  - cd /root
   - docker compose pull
   - docker compose up -d
   
   # Test Telegram notifications
-  - /root/scripts/test-telegram.sh
+  - ./scripts/test-telegram.sh
   
   # Add status check cron job
-  - echo "0 9 * * * root /root/scripts/backup-status.sh >> /var/log/backup-status.log 2>&1" > /etc/cron.d/backup-status
+  - echo "0 9 * * * root /root/supreme-computing-machine/scripts/backup-status.sh >> /var/log/backup-status.log 2>&1" > /etc/cron.d/backup-status
 
 power_state:
   mode: reboot

@@ -2,16 +2,9 @@
 
 # Colors for output
 GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
-
-# Check if .env file exists
-if [ ! -f .env ]; then
-    echo -e "${RED}Error: .env file not found${NC}"
-    echo "Please either:"
-    echo "1. Run './setup.sh' to configure your environment interactively, or"
-    echo "2. Copy .env.example to .env and fill in your values manually"
-    exit 1
-fi
 
 # Create build directory if it doesn't exist
 mkdir -p build
@@ -23,18 +16,9 @@ set -a
 source .env
 set +a
 
-# Function to escape script content for yaml
-escape_script() {
-    echo "      |"
-    sed 's/^/      /' "$1"
-}
-
-# Read script contents
-BACKUP_VOLUMES_SCRIPT=$(escape_script scripts/backup-volumes.sh)
-BACKUP_STATUS_SCRIPT=$(escape_script scripts/backup-status.sh)
-TEST_TELEGRAM_SCRIPT=$(escape_script scripts/test-telegram.sh)
-MOUNT_BACKUP_SCRIPT=$(escape_script scripts/mount-backup-volume.sh)
-RESTORE_VOLUMES_SCRIPT=$(escape_script scripts/restore-volumes.sh)
+# Create a temporary file for validation
+TMP_FILE=$(mktemp)
+trap 'rm -f "$TMP_FILE"' EXIT
 
 # Read the template and perform substitutions
 cat templates/cloud-init.yaml.template | \
@@ -68,11 +52,48 @@ ${RESTIC_PASSWORD}
 ${BACKUP_CRON}
 ${BACKUP_VOLUME_DEVICE}
 ${TELEGRAM_BOT_TOKEN}
-${TELEGRAM_CHAT_ID}
-${BACKUP_VOLUMES_SCRIPT}
-${BACKUP_STATUS_SCRIPT}
-${TEST_TELEGRAM_SCRIPT}
-${MOUNT_BACKUP_SCRIPT}
-${RESTORE_VOLUMES_SCRIPT}' > build/cloud-init.yaml
+${TELEGRAM_CHAT_ID}' > "$TMP_FILE"
 
+# Basic validation - check for cloud-config header
+if ! grep -q "^#cloud-config" "$TMP_FILE"; then
+    echo -e "${RED}Error: Missing #cloud-config header${NC}"
+    exit 1
+fi
+
+# Python YAML validation
+if ! command -v python3 &> /dev/null; then
+    echo -e "${YELLOW}Warning: Python 3 not found. Skipping YAML validation${NC}"
+else
+    # Check if PyYAML is installed
+    if [ ! -d "$HOME/Library/Python/3.9/lib/python/site-packages/yaml" ]; then
+        echo -e "${YELLOW}Warning: PyYAML not installed. Installing...${NC}"
+        pip3 install --user pyyaml
+        # Verify installation
+        if [ ! -d "$HOME/Library/Python/3.9/lib/python/site-packages/yaml" ]; then
+            echo -e "${RED}Error: Failed to install PyYAML. Please install it manually:${NC}"
+            echo "pip3 install --user pyyaml"
+            exit 1
+        fi
+    fi
+    
+    # Set Python path
+    export PYTHONPATH="$HOME/Library/Python/3.9/lib/python/site-packages:$PYTHONPATH"
+    
+    # Validate YAML
+    YAML_ERROR=$(python3 -c "import yaml; yaml.safe_load(open('$TMP_FILE'))" 2>&1)
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error: Invalid YAML syntax${NC}"
+        echo "Python error message:"
+        echo "$YAML_ERROR"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ YAML validation successful${NC}"
+fi
+
+# Move the file to its final location
+mv "$TMP_FILE" build/cloud-init.yaml
 echo -e "${GREEN}✓ cloud-init.yaml has been generated in the build directory${NC}"
+
+# Print first few lines to verify
+echo -e "\nFirst few lines of generated cloud-init.yaml:"
+head -n 10 build/cloud-init.yaml
