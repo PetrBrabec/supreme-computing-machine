@@ -1,0 +1,39 @@
+{
+    email {$CADDY_ACME_EMAIL}
+    admin off
+}
+
+# Appwrite
+appwrite.{$APP_DOMAIN} {
+    reverse_proxy appwrite:80
+}
+
+# n8n
+n8n.{$APP_DOMAIN} {
+    reverse_proxy n8n:5678
+}
+
+# Baserow
+baserow.{$APP_DOMAIN} {
+    reverse_proxy baserow:80
+}
+
+# Qdrant
+qdrant.{$APP_DOMAIN} {
+    reverse_proxy qdrant:6333
+}
+
+# Minio API
+s3.{$APP_DOMAIN} {
+    reverse_proxy minio:9000
+}
+
+# Minio Console
+minio.{$APP_DOMAIN} {
+    reverse_proxy minio:9001
+}
+
+# Keycloak
+auth.{$APP_DOMAIN} {
+    reverse_proxy keycloak:8080
+}

@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile.postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appwrite:
+    image: appwrite/appwrite:1.4.3
+    environment:
+      - _APP_ENV=${_APP_ENV}
+      - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
+      - _APP_DOMAIN=appwrite.${_APP_DOMAIN}
+      - _APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
+    volumes:
+      - appwrite_uploads:/storage/uploads
+      - appwrite_cache:/storage/cache
+      - appwrite_config:/storage/config
+      - appwrite_certificates:/storage/certificates
+    depends_on:
+      - redis
+      - postgres
+
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+  baserow:
+    image: baserow/baserow:1.19.1
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - baserow_data:/baserow/data
+    depends_on:
+      - postgres
+      - redis
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    environment:
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1
+    command: start --optimized
+    environment:
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=${KC_DB}
+      - KC_DB_URL=${KC_DB_URL}
+      - KC_DB_USERNAME=${KC_DB_USERNAME}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
+      - KC_HOSTNAME=${KC_HOSTNAME}
+      - KC_PROXY=${KC_PROXY}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    depends_on:
+      - postgres
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - appwrite
+      - n8n
+      - baserow
+      - qdrant
+      - minio
+      - keycloak
+
+volumes:
+  postgres_data:
+  redis_data:
+  appwrite_uploads:
+  appwrite_cache:
+  appwrite_config:
+  appwrite_certificates:
+  n8n_data:
+  baserow_data:
+  qdrant_data:
+  minio_data:
+  keycloak_data:
+  caddy_data:
+  caddy_config:
