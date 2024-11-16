@@ -50,8 +50,13 @@ prompt_with_default() {
     local is_secret="${4:-false}"
     local value=""
 
+    # If default starts with $( and we're in auto mode, evaluate it
     if [ "$USE_DEFAULTS" = true ]; then
-        echo "$default"
+        if [[ "$default" == \$\(* ]]; then
+            eval "$default"
+        else
+            echo "$default"
+        fi
         return
     fi
 
@@ -62,8 +67,7 @@ prompt_with_default() {
         read -p "$prompt [$default]: " value
     fi
     
-    # If default is a command substitution (starts with $(...)), evaluate it only if no value provided
-    if [ -z "$value" ] && [ "${default:0:2}" = '$(' ]; then
+    if [[ -z "$value" && "$default" == \$\(* ]]; then
         eval "$default"
     else
         echo "${value:-$default}"
