@@ -2,4 +2,5 @@
 .DS_Store
 .agent
 .vscode
+.default.env
 /build

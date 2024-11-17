@@ -27,7 +27,6 @@ This is a test message from your backup system.
 *System Info:*
 🖥️ Host: \`$(hostname)\`
 📅 Time: \`$(date)\`
-💾 Volume: \`$BACKUP_VOLUME_DEVICE\`"
 
 # Send test message
 curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \

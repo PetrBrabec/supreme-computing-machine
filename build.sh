@@ -50,9 +50,11 @@ ${KC_HOSTNAME}
 ${KC_PROXY}
 ${RESTIC_PASSWORD}
 ${BACKUP_CRON}
-${BACKUP_VOLUME_DEVICE}
+${BACKUP_VOLUME_PATH}
+${BACKUP_MOUNT_POINT}
 ${TELEGRAM_BOT_TOKEN}
-${TELEGRAM_CHAT_ID}' > "$TMP_FILE"
+${TELEGRAM_CHAT_ID}
+${RESTIC_REPOSITORY}' > "$TMP_FILE"
 
 # Basic validation - check for cloud-config header
 if ! grep -q "^#cloud-config" "$TMP_FILE"; then

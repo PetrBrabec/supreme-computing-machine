@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Colors for output
+# Colors
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-RED='\033[0;31m'
 NC='\033[0m'
 
 # Handle Ctrl+C gracefully
@@ -18,28 +18,27 @@ if [ -f .env ]; then
     exit 1
 fi
 
-# Parse command line arguments
-USE_DEFAULTS=false
-while getopts "y" opt; do
-    case $opt in
-        y)
-            USE_DEFAULTS=true
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            exit 1
-            ;;
-    esac
-done
-
 # Function to generate a secure password
 generate_password() {
-    tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32 | tr -d '\n'
+    openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32
 }
 
 # Function to generate a hex key
 generate_key() {
     hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n'
+}
+
+# Function to get value from .default.env
+get_default_value() {
+    local var_name=$1
+    if [ -f .default.env ]; then
+        # Use grep with word boundaries to ensure exact variable name match
+        local value=$(grep "^${var_name}=" .default.env | cut -d'=' -f2-)
+        # Only return non-empty values
+        if [ -n "$value" ] && [ "$value" != "your_bot_token" ] && [ "$value" != "your_chat_id" ]; then
+            echo "$value"
+        fi
+    fi
 }
 
 # Function to prompt for value with default
@@ -50,11 +49,28 @@ prompt_with_default() {
     local is_secret="${4:-false}"
     local value=""
 
-    # If default starts with $( and we're in auto mode, evaluate it
-    if [ "$USE_DEFAULTS" = true ]; then
-        if [[ "$default" == \$\(* ]]; then
-            eval "$default"
+    # Check .default.env first
+    local default_value=$(get_default_value "$var_name")
+    if [ -n "$default_value" ]; then
+        echo "$default_value"
+        return
+    fi
+
+    # If domain is provided or AUTO_YES is set, use defaults or generate passwords
+    if [ -n "$DOMAIN" ] || [ "$AUTO_YES" = true ]; then
+        if [ "$is_secret" = true ]; then
+            generate_password
+        elif [[ "$default" == \$\(generate_key\) ]]; then
+            generate_key
         else
+            # For domain-based values, use DOMAIN from .default.env if available
+            if [[ "$default" == *"DOMAIN"* ]]; then
+                default_domain=$(get_default_value "DOMAIN")
+                if [ -n "$default_domain" ]; then
+                    echo "${default/DOMAIN/$default_domain}"
+                    return
+                fi
+            fi
             echo "$default"
         fi
         return
@@ -74,112 +90,156 @@ prompt_with_default() {
     fi
 }
 
+# Parse command line arguments
+while getopts "d:y" opt; do
+    case $opt in
+        d)
+            DOMAIN="$OPTARG"
+            ;;
+        y)
+            AUTO_YES=true
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# If no domain provided and .default.env exists, use it as a base
+if [ -z "$DOMAIN" ] && [ -f .default.env ]; then
+    echo -e "${BLUE}Using .default.env as template and generating missing values${NC}"
+    DOMAIN=$(get_default_value "DOMAIN")
+fi
+
+# Require domain parameter if .default.env doesn't exist and no domain provided
+if [ -z "$DOMAIN" ]; then
+    echo -e "${RED}Error: Domain is required. Please use -d option to specify the domain (e.g., -d example.com)${NC}"
+    echo -e "Alternatively, create a .default.env file to use as template"
+    exit 1
+fi
+
 echo -e "${BLUE}🔧 Interactive Setup - The Setup${NC}"
 echo "==============================="
-echo
-echo "This script will help you configure your environment."
-echo "Press Enter to accept the default values or input your own."
+if [ -n "$DOMAIN" ] || [ "$AUTO_YES" = true ]; then
+    echo -e "Running in automatic mode"
+    echo -e "Domain: ${GREEN}$DOMAIN${NC}"
+    [ -f .default.env ] && echo -e "Using values from ${GREEN}.default.env${NC}"
+    echo -e "Missing values will be generated automatically"
+fi
 echo
 
-# Domain Configuration
-echo -e "\n${BLUE}Domain Configuration${NC}"
-echo "-------------------"
-DOMAIN=$(prompt_with_default "Enter your domain name" "example.com")
-CADDY_ACME_EMAIL=$(prompt_with_default "Enter email for Let's Encrypt certificates" "admin@${DOMAIN}")
+# Domain-based variables
+APP_DOMAIN=$(prompt_with_default "Enter app domain" "$DOMAIN" "APP_DOMAIN")
+KC_HOSTNAME=$(prompt_with_default "Enter Keycloak hostname" "auth.$DOMAIN" "KC_HOSTNAME")
+APP_DOMAIN_TARGET=$(prompt_with_default "Enter app domain target" "appwrite.$DOMAIN" "APP_DOMAIN_TARGET")
 
-# Repository Configuration
+# Critical Configuration (shown at the top of .env)
+echo -e "\n${BLUE}Email Configuration${NC}"
+echo "==================="
+CADDY_ACME_EMAIL=$(prompt_with_default "Enter email for SSL certificates" "admin@$DOMAIN" "CADDY_ACME_EMAIL")
+
 echo -e "\n${BLUE}Repository Configuration${NC}"
-echo "-----------------------"
+echo "====================="
 SETUP_REPOSITORY=$(prompt_with_default "Enter the git repository URL" "https://github.com/PetrBrabec/supreme-computing-machine.git")
 
-# PostgreSQL Configuration
-echo -e "\n${BLUE}PostgreSQL Configuration${NC}"
-echo "----------------------"
+# Database Configuration
+echo -e "\n${BLUE}Database Configuration${NC}"
+echo "====================="
 POSTGRES_USER=$(prompt_with_default "PostgreSQL admin username" "postgres")
 POSTGRES_PASSWORD=$(prompt_with_default "PostgreSQL admin password" "$(generate_password)" "POSTGRES_PASSWORD" true)
 POSTGRES_DB=$(prompt_with_default "PostgreSQL initial database" "n8n")
 POSTGRES_NON_ROOT_USER=$(prompt_with_default "PostgreSQL non-root username" "n8n")
 POSTGRES_NON_ROOT_PASSWORD=$(prompt_with_default "PostgreSQL non-root password" "$(generate_password)" "POSTGRES_NON_ROOT_PASSWORD" true)
 
-# Appwrite Configuration
-echo -e "\n${BLUE}Appwrite Configuration${NC}"
-echo "---------------------"
-APP_ENV=$(prompt_with_default "Appwrite environment" "production")
-APP_OPENSSL_KEY=$(prompt_with_default "Appwrite OpenSSL key" "$(generate_key)" "APP_OPENSSL_KEY" true)
-APP_DOMAIN_TARGET=$(prompt_with_default "Appwrite domain target" "${DOMAIN}")
-
-# Baserow Configuration
-echo -e "\n${BLUE}Baserow Configuration${NC}"
-echo "--------------------"
 BASEROW_SECRET_KEY=$(prompt_with_default "Baserow secret key" "$(generate_key)")
 BASEROW_DB_PASSWORD=$(prompt_with_default "Baserow database password" "$(generate_password)" "BASEROW_DB_PASSWORD" true)
 
-# Qdrant Configuration
-echo -e "\n${BLUE}Qdrant Configuration${NC}"
-echo "------------------"
-QDRANT_API_KEY=$(prompt_with_default "Qdrant API key" "$(generate_key)")
-
-# Minio Configuration
-echo -e "\n${BLUE}Minio Configuration${NC}"
-echo "-----------------"
-MINIO_ROOT_USER=$(prompt_with_default "Minio root username" "admin")
-MINIO_ROOT_PASSWORD=$(prompt_with_default "Minio root password" "$(generate_password)" "MINIO_ROOT_PASSWORD" true)
-
-# Redis Configuration
-echo -e "\n${BLUE}Redis Configuration${NC}"
-echo "-----------------"
-REDIS_PASSWORD=$(prompt_with_default "Redis password" "$(generate_password)" "REDIS_PASSWORD" true)
-
 # Keycloak Configuration
 echo -e "\n${BLUE}Keycloak Configuration${NC}"
-echo "--------------------"
+echo "====================="
 KEYCLOAK_ADMIN=$(prompt_with_default "Keycloak admin username" "admin")
 KEYCLOAK_ADMIN_PASSWORD=$(prompt_with_default "Keycloak admin password" "$(generate_password)" "KEYCLOAK_ADMIN_PASSWORD" true)
+KC_DB=$(prompt_with_default "Keycloak database name" "keycloak")
+KC_DB_URL=$(prompt_with_default "Keycloak database URL" "jdbc:postgresql://postgres/$KC_DB")
 KC_DB_USERNAME=$(prompt_with_default "Keycloak database username" "keycloak")
 KC_DB_PASSWORD=$(prompt_with_default "Keycloak database password" "$(generate_password)" "KC_DB_PASSWORD" true)
+KC_PROXY=$(prompt_with_default "Keycloak proxy mode" "edge")
 
 # Backup Configuration
 echo -e "\n${BLUE}Backup Configuration${NC}"
-echo "--------------------"
+echo "====================="
+BACKUP_VOLUME_PATH=$(prompt_with_default "Enter Hetzner volume path" "/dev/disk/by-id/scsi-0HC_Volume_101626985" "BACKUP_VOLUME_PATH")
+BACKUP_MOUNT_POINT=$(prompt_with_default "Enter backup mount point" "/mnt/volume-scm-backup" "BACKUP_MOUNT_POINT")
 RESTIC_PASSWORD=$(prompt_with_default "Restic backup password" "$(generate_password)" "RESTIC_PASSWORD" true)
-BACKUP_CRON=$(prompt_with_default "Backup schedule (cron format)" "0 2 * * *")
-BACKUP_VOLUME_DEVICE=$(prompt_with_default "Backup volume device" "/dev/sdb")
+BACKUP_CRON=$(prompt_with_default "Enter backup cron schedule" "0 2 * * *" "BACKUP_CRON")
+RESTIC_REPOSITORY=$(prompt_with_default "Enter restic repository path" "$BACKUP_MOUNT_POINT/restic-repo" "RESTIC_REPOSITORY")
+
+# Other Services Configuration
+echo -e "\n${BLUE}Other Services Configuration${NC}"
+echo "=========================="
+APP_ENV=$(prompt_with_default "Appwrite environment" "production")
+APP_OPENSSL_KEY=$(prompt_with_default "Appwrite OpenSSL key" "$(generate_key)")
+
+QDRANT_API_KEY=$(prompt_with_default "Qdrant API key" "$(generate_key)")
+
+MINIO_ROOT_USER=$(prompt_with_default "MinIO root username" "admin")
+MINIO_ROOT_PASSWORD=$(prompt_with_default "MinIO root password" "$(generate_password)" "MINIO_ROOT_PASSWORD" true)
+
+REDIS_PASSWORD=$(prompt_with_default "Redis password" "$(generate_password)" "REDIS_PASSWORD" true)
 
 # Telegram Configuration
 echo -e "\n${BLUE}Telegram Configuration${NC}"
-echo "---------------------"
-echo "To set up Telegram notifications:"
-echo "1. Create a bot with @BotFather"
-echo "2. Get the bot token"
-echo "3. Start a chat with your bot"
-echo "4. Get your chat ID from https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates"
-echo
-TELEGRAM_BOT_TOKEN=$(prompt_with_default "Telegram bot token" "your_bot_token")
-TELEGRAM_CHAT_ID=$(prompt_with_default "Telegram chat ID" "your_chat_id")
+echo "====================="
+TELEGRAM_BOT_TOKEN=$(prompt_with_default "Telegram bot token" "your_bot_token" "TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID=$(prompt_with_default "Telegram chat ID" "your_chat_id" "TELEGRAM_CHAT_ID")
 
-cat > .env << EOF
-# Domain Configuration
-APP_DOMAIN=${DOMAIN}
+# Generate .env file
+cat > .env << EOL
+# Critical Configuration
+DOMAIN=${DOMAIN}
 CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
-
-# Repository Configuration
 SETUP_REPOSITORY=${SETUP_REPOSITORY}
 
-# PostgreSQL Configuration
+# Database Credentials
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 POSTGRES_DB=${POSTGRES_DB}
 POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
 POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
 
-# Appwrite Configuration
-APP_ENV=${APP_ENV}
-APP_OPENSSL_KEY=${APP_OPENSSL_KEY}
-APP_DOMAIN_TARGET=${DOMAIN}
+# Keycloak Configuration
+KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+KC_DB=${KC_DB}
+KC_DB_URL=${KC_DB_URL}
+KC_DB_USERNAME=${KC_DB_USERNAME}
+KC_DB_PASSWORD=${KC_DB_PASSWORD}
+KC_HOSTNAME=${KC_HOSTNAME}
+KC_PROXY=${KC_PROXY}
+
+# Backup Configuration
+RESTIC_PASSWORD=${RESTIC_PASSWORD}
+BACKUP_CRON=${BACKUP_CRON}
+BACKUP_VOLUME_PATH=${BACKUP_VOLUME_PATH}
+BACKUP_MOUNT_POINT=${BACKUP_MOUNT_POINT}
+RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
+
+# Telegram Notifications
+TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+
+# Service Endpoints
+APP_DOMAIN=${APP_DOMAIN}
+APP_DOMAIN_TARGET=${APP_DOMAIN_TARGET}
 
 # Baserow Configuration
 BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
 BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
+
+# Appwrite Configuration
+APP_ENV=${APP_ENV}
+APP_OPENSSL_KEY=${APP_OPENSSL_KEY}
 
 # Qdrant Configuration
 QDRANT_API_KEY=${QDRANT_API_KEY}
@@ -190,33 +250,15 @@ MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
 
 # Redis Configuration
 REDIS_PASSWORD=${REDIS_PASSWORD}
+EOL
 
-# Keycloak Configuration
-KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-KC_DB=postgres
-KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
-KC_DB_USERNAME=${KC_DB_USERNAME}
-KC_DB_PASSWORD=${KC_DB_PASSWORD}
-KC_HOSTNAME=${DOMAIN}
-KC_PROXY=edge
-
-# Backup Configuration
-RESTIC_PASSWORD=${RESTIC_PASSWORD}
-BACKUP_CRON="${BACKUP_CRON}"
-BACKUP_VOLUME_DEVICE=${BACKUP_VOLUME_DEVICE}
-TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-EOF
-
-echo -e "\n${GREEN}✓ Configuration complete!${NC}"
-echo
-echo "Your environment has been configured and saved to .env"
-echo
-echo "Next steps:"
-echo "1. Review the .env file and make any necessary adjustments"
-echo "2. Run './build.sh' to generate your cloud-init configuration"
-echo "3. Use the generated configuration to deploy your server"
-echo
-echo "To test your configuration:"
-echo "./test.sh"
+echo -e "\n${GREEN}Configuration complete! .env file has been generated.${NC}"
+echo -e "Domain configured as: ${BLUE}$DOMAIN${NC}"
+echo -e "Services will be available at:"
+echo -e "- Appwrite: ${BLUE}appwrite.$DOMAIN${NC}"
+echo -e "- n8n: ${BLUE}n8n.$DOMAIN${NC}"
+echo -e "- Baserow: ${BLUE}baserow.$DOMAIN${NC}"
+echo -e "- Qdrant: ${BLUE}qdrant.$DOMAIN${NC}"
+echo -e "- MinIO API: ${BLUE}s3.$DOMAIN${NC}"
+echo -e "- MinIO Console: ${BLUE}minio.$DOMAIN${NC}"
+echo -e "- Keycloak: ${BLUE}auth.$DOMAIN${NC}"

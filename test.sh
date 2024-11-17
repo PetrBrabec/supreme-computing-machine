@@ -111,7 +111,7 @@ check_variable "KC_PROXY"
 echo -e "\n${BLUE}Backup Configuration${NC}"
 check_variable "RESTIC_PASSWORD"
 check_variable "BACKUP_CRON"
-check_variable "BACKUP_VOLUME_DEVICE"
+check_variable "BACKUP_VOLUME_PATH"
 
 # Test Telegram Configuration
 echo -e "\n${BLUE}Telegram Configuration${NC}"
