@@ -60,7 +60,15 @@ write_files:
       RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
 
 runcmd:
+  # Initial notification
+  - cd /root
+  - git clone ${SETUP_REPOSITORY} supreme-computing-machine
+  - cd supreme-computing-machine
+  - chmod +x scripts/*.sh
+  - ./scripts/notify.sh "🚀 *Server Setup Started*%0AStarting installation of Supreme Computing Machine..."
+  
   # Configure firewall
+  - ./scripts/notify.sh "🛡️ Configuring firewall..."
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow 22/tcp
@@ -68,32 +76,34 @@ runcmd:
   - ufw allow 443/tcp
   - ufw --force enable
   
-  # Clone the repository
-  - cd /root
-  - git clone ${SETUP_REPOSITORY} supreme-computing-machine
-  - cd supreme-computing-machine
-  
   # Copy configuration files
+  - ./scripts/notify.sh "📝 Copying configuration files..."
   - cp /root/.env .env
   
-  # Make scripts executable
-  - chmod +x scripts/*.sh
-  
   # Mount backup volume and initialize
+  - ./scripts/notify.sh "💾 Mounting backup volume..."
   - ./scripts/mount-backup-volume.sh
   
   # Set up backup cron job
   - echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
   
   # Start services
+  - ./scripts/notify.sh "🚀 Starting services..."
   - docker compose pull
   - docker compose up -d
   
-  # Test Telegram notifications
-  - ./scripts/test-telegram.sh
-  
-  # Add status check cron job
-  - echo "0 9 * * * root /root/supreme-computing-machine/scripts/backup-status.sh >> /var/log/backup-status.log 2>&1" > /etc/cron.d/backup-status
+  # Final notification
+  - |
+    ./scripts/notify.sh "✅ *Setup Complete*
+    Supreme Computing Machine is now running!
+
+    Services:
+    - Appwrite: https://appwrite.${APP_DOMAIN}
+    - n8n: https://n8n.${APP_DOMAIN}
+    - Baserow: https://baserow.${APP_DOMAIN}
+    - Qdrant: https://qdrant.${APP_DOMAIN}
+    - MinIO: https://minio.${APP_DOMAIN}
+    - Keycloak: https://auth.${APP_DOMAIN}"
 
 power_state:
   mode: reboot
