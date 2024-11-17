@@ -1,0 +1,15 @@
+{
+    "name": "pulum",
+    "main": "index.ts",
+    "scripts": {
+        "redeploy": "pulumi destroy --yes && pulumi up --yes"
+    },
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@pulumi/hcloud": "^1.21.0",
+        "@pulumi/pulumi": "^3.113.0"
+    }
+}
