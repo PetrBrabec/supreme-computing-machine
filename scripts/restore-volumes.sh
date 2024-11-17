@@ -14,25 +14,20 @@ RESTORE_DIR="/mnt/backup/restore_${SNAPSHOT_ID}"
 # Source environment variables
 source /root/.env
 
-# Function to send Telegram notification
+# Get script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Function to send notification
 send_notification() {
-    if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-        curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-             -d "chat_id=${TELEGRAM_CHAT_ID}" \
-             -d "text=${1}" \
-             -d "parse_mode=Markdown"
-    fi
+    "${SCRIPT_DIR}/notify.sh" "$1"
 }
 
 # Error handling function
 handle_error() {
-    local error_message="❌ *Restore Failed*
+    send_notification "❌ *Restore Failed*
 
 Error: ${1}
-Time: \`$(date)\`
 Host: \`$(hostname)\`"
-    
-    send_notification "$error_message"
     
     # Try to restart services if they're down
     cd /root
@@ -75,7 +70,6 @@ rm -rf "$RESTORE_DIR"
 COMPLETION_MESSAGE="✅ *Volume restore completed successfully!*
 
 Restored from snapshot: \`${SNAPSHOT_ID}\`
-Time: \`$(date)\`
 Host: \`$(hostname)\`"
 
 send_notification "$COMPLETION_MESSAGE"

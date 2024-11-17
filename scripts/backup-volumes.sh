@@ -3,23 +3,19 @@
 # Source environment variables
 source /root/.env
 
+# Get script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # Function to send Telegram notification
 send_notification() {
-    if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
-        curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-             -d "chat_id=${TELEGRAM_CHAT_ID}" \
-             -d "text=${1}" \
-             -d "parse_mode=Markdown"
-    fi
+    "${SCRIPT_DIR}/notify.sh" "$1"
 }
 
 # Error handling function
 handle_error() {
     local error_message="❌ *Backup Failed*
 
-Error: ${1}
-Time: \`$(date)\`
-Host: \`$(hostname)\`"
+Error: ${1}"
     
     send_notification "$error_message"
     
