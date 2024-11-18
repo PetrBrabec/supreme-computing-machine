@@ -2,7 +2,7 @@
     "name": "pulum",
     "main": "index.ts",
     "scripts": {
-        "redeploy": "pulumi destroy --yes && pulumi up --yes",
+        "redeploy": "pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/volumeAttachment:VolumeAttachment::backup-volume-attachment --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --target urn:pulumi:dev::pulum::hcloud:index/sshKey:SshKey::* --yes && pulumi up --yes",
         "refresh": "pulumi refresh --yes"
     },
     "devDependencies": {
