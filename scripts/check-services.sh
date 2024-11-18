@@ -8,8 +8,8 @@ source /root/.env
 
 # Function to check if Docker services are ready
 check_docker_services() {
-    local max_attempts=30
-    local wait_seconds=10
+    local max_attempts=10
+    local wait_seconds=5
     local attempt=1
 
     "${SCRIPT_DIR}/notify.sh" "🔄 Waiting for Docker services to be ready..."
@@ -42,14 +42,14 @@ check_docker_services() {
 check_service_endpoint() {
     local service_name=$1
     local url=$2
-    local max_attempts=${3:-30}
-    local wait_seconds=${4:-10}
+    local max_attempts=10
+    local wait_seconds=5
     local attempt=1
 
     "${SCRIPT_DIR}/notify.sh" "🔍 Checking ${service_name} endpoint availability..."
 
     while [ $attempt -le $max_attempts ]; do
-        if curl -s -k --head "$url" | grep "HTTP/" > /dev/null 2>&1; then
+        if curl -s -k --head --connect-timeout 5 "$url" | grep "HTTP/" > /dev/null 2>&1; then
             "${SCRIPT_DIR}/notify.sh" "✅ ${service_name} endpoint is responding"
             return 0
         fi
