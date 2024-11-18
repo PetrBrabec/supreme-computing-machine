@@ -92,8 +92,7 @@ runcmd:
   
   # Start services
   - ./scripts/notify.sh "🚀 Starting services..."
-  - docker compose pull
-  - docker compose up -d
+  - ./scripts/deploy-services.sh
   
   # Run health checks only if SKIP_SERVICES_CHECK is not set
   - |

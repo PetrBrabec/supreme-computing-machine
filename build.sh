@@ -25,46 +25,50 @@ source .env
 : ${POSTGRES_HOST:=postgres}
 : ${POSTGRES_PORT:=5432}
 : ${POSTGRES_USER:=postgres}
-: ${POSTGRES_PASSWORD:=}
+: ${POSTGRES_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
 # N8N Database Configuration
 : ${N8N_DB_USER:=n8n}
-: ${N8N_DB_PASSWORD:=}
+: ${N8N_DB_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
 # Baserow Database Configuration
 : ${BASEROW_DB_USER:=baserow}
-: ${BASEROW_DB_PASSWORD:=}
+: ${BASEROW_DB_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${BASEROW_SECRET_KEY:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
-# Keycloak Database Configuration
+# Keycloak Configuration
+: ${KC_DB:=postgres}
 : ${KC_DB_USERNAME:=keycloak}
-: ${KC_DB_PASSWORD:=}
+: ${KC_DB_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${KEYCLOAK_ADMIN:=admin}
+: ${KEYCLOAK_ADMIN_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${KC_HOSTNAME:=auth.$DOMAIN}
+: ${KC_PROXY:=edge}
 
 # Appwrite Configuration
-: ${APPWRITE_ENV:=production}
-: ${APPWRITE_OPENSSL_KEY:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
-: ${APPWRITE_DOMAIN:=appwrite.$DOMAIN}
-: ${APPWRITE_DOMAIN_TARGET:=$DOMAIN}
+: ${_APP_ENV:=production}
+: ${_APP_OPENSSL_KEY_V1:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${_APP_DOMAIN:=appwrite.$DOMAIN}
+: ${_APP_DOMAIN_TARGET:=$DOMAIN}
+
+# Qdrant Configuration
+: ${QDRANT_API_KEY:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
 # Minio Configuration
 : ${MINIO_ROOT_USER:=admin}
-: ${MINIO_ROOT_PASSWORD:=}
+: ${MINIO_ROOT_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
 # Redis Configuration
-: ${REDIS_PASSWORD:=}
+: ${REDIS_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 
 # Backup Configuration
-: ${BACKUP_CRON:=0 3 * * *}
+: ${RESTIC_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${BACKUP_CRON:="0 1 * * *"}
+: ${BACKUP_VOLUME_PATH:=/dev/disk/by-id/scsi-0HC_Volume_101626985}
 : ${BACKUP_MOUNT_POINT:=/mnt/volume-scm-backup}
-: ${BACKUP_VOLUME_PATH:=}
-: ${RESTIC_PASSWORD:=}
-: ${RESTIC_REPOSITORY:=/mnt/volume-scm-backup/restic-repo}
-
-# Telegram Configuration
 : ${TELEGRAM_BOT_TOKEN:=}
 : ${TELEGRAM_CHAT_ID:=}
-
-# Qdrant Configuration
-: ${QDRANT_API_KEY:=}
+: ${RESTIC_REPOSITORY:=/mnt/volume-scm-backup/restic-repo}
 
 # Set SKIP_SERVICES_CHECK=true for now
 export SKIP_SERVICES_CHECK=true
@@ -87,12 +91,18 @@ ${N8N_DB_USER}
 ${N8N_DB_PASSWORD}
 ${BASEROW_DB_USER}
 ${BASEROW_DB_PASSWORD}
+${BASEROW_SECRET_KEY}
+${KC_DB}
 ${KC_DB_USERNAME}
 ${KC_DB_PASSWORD}
-${APPWRITE_ENV}
-${APPWRITE_OPENSSL_KEY}
-${APPWRITE_DOMAIN}
-${APPWRITE_DOMAIN_TARGET}
+${KEYCLOAK_ADMIN}
+${KEYCLOAK_ADMIN_PASSWORD}
+${KC_HOSTNAME}
+${KC_PROXY}
+${_APP_ENV}
+${_APP_OPENSSL_KEY_V1}
+${_APP_DOMAIN}
+${_APP_DOMAIN_TARGET}
 ${QDRANT_API_KEY}
 ${MINIO_ROOT_USER}
 ${MINIO_ROOT_PASSWORD}

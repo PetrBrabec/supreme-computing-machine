@@ -133,9 +133,9 @@ fi
 echo
 
 # Domain-based variables
-APP_DOMAIN=$(prompt_with_default "Enter app domain" "$DOMAIN" "APP_DOMAIN")
+_APP_DOMAIN=$(prompt_with_default "Enter app domain" "appwrite.$DOMAIN" "_APP_DOMAIN")
 KC_HOSTNAME=$(prompt_with_default "Enter Keycloak hostname" "auth.$DOMAIN" "KC_HOSTNAME")
-APP_DOMAIN_TARGET=$(prompt_with_default "Enter app domain target" "appwrite.$DOMAIN" "APP_DOMAIN_TARGET")
+_APP_DOMAIN_TARGET=$(prompt_with_default "Enter app domain target" "$DOMAIN" "_APP_DOMAIN_TARGET")
 
 # Critical Configuration (shown at the top of .env)
 echo -e "\n${BLUE}Email Configuration${NC}"
@@ -154,6 +154,9 @@ POSTGRES_PASSWORD=$(prompt_with_default "PostgreSQL admin password" "$(generate_
 N8N_DB_USER=$(prompt_with_default "n8n database username" "n8n")
 N8N_DB_PASSWORD=$(prompt_with_default "n8n database password" "$(generate_password)" "N8N_DB_PASSWORD" true)
 
+# Baserow Configuration
+echo -e "\n${BLUE}Baserow Configuration${NC}"
+echo "====================="
 BASEROW_SECRET_KEY=$(prompt_with_default "Baserow secret key" "$(generate_key)")
 BASEROW_DB_USER=$(prompt_with_default "Baserow database username" "baserow")
 BASEROW_DB_PASSWORD=$(prompt_with_default "Baserow database password" "$(generate_password)" "BASEROW_DB_PASSWORD" true)
@@ -163,11 +166,32 @@ echo -e "\n${BLUE}Keycloak Configuration${NC}"
 echo "====================="
 KEYCLOAK_ADMIN=$(prompt_with_default "Keycloak admin username" "admin")
 KEYCLOAK_ADMIN_PASSWORD=$(prompt_with_default "Keycloak admin password" "$(generate_password)" "KEYCLOAK_ADMIN_PASSWORD" true)
-KC_DB=$(prompt_with_default "Keycloak database name" "keycloak")
-KC_DB_URL=$(prompt_with_default "Keycloak database URL" "jdbc:postgresql://postgres/$KC_DB")
+KC_DB=$(prompt_with_default "Keycloak database name" "postgres")
 KC_DB_USERNAME=$(prompt_with_default "Keycloak database username" "keycloak")
 KC_DB_PASSWORD=$(prompt_with_default "Keycloak database password" "$(generate_password)" "KC_DB_PASSWORD" true)
 KC_PROXY=$(prompt_with_default "Keycloak proxy mode" "edge")
+
+# Appwrite Configuration
+echo -e "\n${BLUE}Appwrite Configuration${NC}"
+echo "====================="
+_APP_ENV=$(prompt_with_default "Appwrite environment" "production")
+_APP_OPENSSL_KEY_V1=$(prompt_with_default "Appwrite OpenSSL key" "$(generate_key)")
+
+# Qdrant Configuration
+echo -e "\n${BLUE}Qdrant Configuration${NC}"
+echo "====================="
+QDRANT_API_KEY=$(prompt_with_default "Qdrant API key" "$(generate_key)")
+
+# Minio Configuration
+echo -e "\n${BLUE}MinIO Configuration${NC}"
+echo "====================="
+MINIO_ROOT_USER=$(prompt_with_default "MinIO root username" "admin")
+MINIO_ROOT_PASSWORD=$(prompt_with_default "MinIO root password" "$(generate_password)" "MINIO_ROOT_PASSWORD" true)
+
+# Redis Configuration
+echo -e "\n${BLUE}Redis Configuration${NC}"
+echo "====================="
+REDIS_PASSWORD=$(prompt_with_default "Redis password" "$(generate_password)" "REDIS_PASSWORD" true)
 
 # Backup Configuration
 echo -e "\n${BLUE}Backup Configuration${NC}"
@@ -175,21 +199,8 @@ echo "====================="
 BACKUP_VOLUME_PATH=$(prompt_with_default "Enter Hetzner volume path" "/dev/disk/by-id/scsi-0HC_Volume_101626985" "BACKUP_VOLUME_PATH")
 BACKUP_MOUNT_POINT=$(prompt_with_default "Enter backup mount point" "/mnt/volume-scm-backup" "BACKUP_MOUNT_POINT")
 RESTIC_PASSWORD=$(prompt_with_default "Restic backup password" "$(generate_password)" "RESTIC_PASSWORD" true)
-BACKUP_CRON=$(prompt_with_default "Enter backup cron schedule" "0 2 * * *" "BACKUP_CRON")
+BACKUP_CRON=$(prompt_with_default "Enter backup cron schedule" "0 1 * * *" "BACKUP_CRON")
 RESTIC_REPOSITORY=$(prompt_with_default "Enter restic repository path" "$BACKUP_MOUNT_POINT/restic-repo" "RESTIC_REPOSITORY")
-
-# Other Services Configuration
-echo -e "\n${BLUE}Other Services Configuration${NC}"
-echo "=========================="
-APP_ENV=$(prompt_with_default "Appwrite environment" "production")
-APP_OPENSSL_KEY=$(prompt_with_default "Appwrite OpenSSL key" "$(generate_key)")
-
-QDRANT_API_KEY=$(prompt_with_default "Qdrant API key" "$(generate_key)")
-
-MINIO_ROOT_USER=$(prompt_with_default "MinIO root username" "admin")
-MINIO_ROOT_PASSWORD=$(prompt_with_default "MinIO root password" "$(generate_password)" "MINIO_ROOT_PASSWORD" true)
-
-REDIS_PASSWORD=$(prompt_with_default "Redis password" "$(generate_password)" "REDIS_PASSWORD" true)
 
 # Telegram Configuration
 echo -e "\n${BLUE}Telegram Configuration${NC}"
@@ -204,21 +215,45 @@ DOMAIN=${DOMAIN}
 CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
 SETUP_REPOSITORY=${SETUP_REPOSITORY}
 
-# Database Credentials
+# PostgreSQL Configuration
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+# N8N Database Configuration
 N8N_DB_USER=${N8N_DB_USER}
 N8N_DB_PASSWORD=${N8N_DB_PASSWORD}
 
+# Baserow Configuration
+BASEROW_DB_USER=${BASEROW_DB_USER}
+BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
+BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
+
 # Keycloak Configuration
-KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
 KC_DB=${KC_DB}
-KC_DB_URL=${KC_DB_URL}
 KC_DB_USERNAME=${KC_DB_USERNAME}
 KC_DB_PASSWORD=${KC_DB_PASSWORD}
+KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
 KC_HOSTNAME=${KC_HOSTNAME}
 KC_PROXY=${KC_PROXY}
+
+# Appwrite Configuration
+_APP_ENV=${_APP_ENV}
+_APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
+_APP_DOMAIN=${_APP_DOMAIN}
+_APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
+
+# Qdrant Configuration
+QDRANT_API_KEY=${QDRANT_API_KEY}
+
+# Minio Configuration
+MINIO_ROOT_USER=${MINIO_ROOT_USER}
+MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+# Redis Configuration
+REDIS_PASSWORD=${REDIS_PASSWORD}
 
 # Backup Configuration
 RESTIC_PASSWORD=${RESTIC_PASSWORD}
@@ -230,29 +265,6 @@ RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
 # Telegram Notifications
 TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
 TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-
-# Service Endpoints
-APP_DOMAIN=${APP_DOMAIN}
-APP_DOMAIN_TARGET=${APP_DOMAIN_TARGET}
-
-# Baserow Configuration
-BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
-BASEROW_DB_USER=${BASEROW_DB_USER}
-BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
-
-# Appwrite Configuration
-APP_ENV=${APP_ENV}
-APP_OPENSSL_KEY=${APP_OPENSSL_KEY}
-
-# Qdrant Configuration
-QDRANT_API_KEY=${QDRANT_API_KEY}
-
-# Minio Configuration
-MINIO_ROOT_USER=${MINIO_ROOT_USER}
-MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-
-# Redis Configuration
-REDIS_PASSWORD=${REDIS_PASSWORD}
 EOL
 
 echo -e "\n${GREEN}Configuration complete! .env file has been generated.${NC}"
