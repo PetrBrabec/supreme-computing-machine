@@ -3,7 +3,7 @@
     "main": "index.ts",
     "scripts": {
         "build": "cd ../ && ./build.sh",
-        "redeploy": "npm run build && pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --yes && pulumi up --yes --config-file Pulumi.dev.yaml",
+        "redeploy": "npm run build && pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --target-dependents --yes && pulumi up --yes --config-file Pulumi.dev.yaml",
         "redeploy-all": "npm run build && pulumi destroy --yes --config-file Pulumi.dev.yaml && pulumi up --yes --config-file Pulumi.dev.yaml",
         "refresh": "pulumi refresh --yes"
     },

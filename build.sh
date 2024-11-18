@@ -14,6 +14,58 @@ echo "Creating cloud-init.yaml..."
 # Load and export environment variables
 set -a
 source .env
+
+# Set default values for missing variables
+# Critical Configuration
+: ${DOMAIN:=localhost}
+: ${CADDY_ACME_EMAIL:=admin@localhost}
+: ${SETUP_REPOSITORY:=https://github.com/PetrBrabec/supreme-computing-machine.git}
+
+# PostgreSQL Configuration
+: ${POSTGRES_HOST:=postgres}
+: ${POSTGRES_PORT:=5432}
+: ${POSTGRES_USER:=postgres}
+: ${POSTGRES_PASSWORD:=}
+
+# N8N Database Configuration
+: ${N8N_DB_USER:=n8n}
+: ${N8N_DB_PASSWORD:=}
+
+# Baserow Database Configuration
+: ${BASEROW_DB_USER:=baserow}
+: ${BASEROW_DB_PASSWORD:=}
+
+# Keycloak Database Configuration
+: ${KC_DB_USERNAME:=keycloak}
+: ${KC_DB_PASSWORD:=}
+
+# Appwrite Configuration
+: ${APPWRITE_ENV:=production}
+: ${APPWRITE_OPENSSL_KEY:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
+: ${APPWRITE_DOMAIN:=appwrite.$DOMAIN}
+: ${APPWRITE_DOMAIN_TARGET:=$DOMAIN}
+
+# Minio Configuration
+: ${MINIO_ROOT_USER:=admin}
+: ${MINIO_ROOT_PASSWORD:=}
+
+# Redis Configuration
+: ${REDIS_PASSWORD:=}
+
+# Backup Configuration
+: ${BACKUP_CRON:=0 3 * * *}
+: ${BACKUP_MOUNT_POINT:=/mnt/volume-scm-backup}
+: ${BACKUP_VOLUME_PATH:=}
+: ${RESTIC_PASSWORD:=}
+: ${RESTIC_REPOSITORY:=/mnt/volume-scm-backup/restic-repo}
+
+# Telegram Configuration
+: ${TELEGRAM_BOT_TOKEN:=}
+: ${TELEGRAM_CHAT_ID:=}
+
+# Qdrant Configuration
+: ${QDRANT_API_KEY:=}
+
 # Set SKIP_SERVICES_CHECK=true for now
 export SKIP_SERVICES_CHECK=true
 set +a
@@ -27,29 +79,24 @@ cat templates/cloud-init.yaml.template | \
 envsubst '${DOMAIN}
 ${CADDY_ACME_EMAIL}
 ${SETUP_REPOSITORY}
+${POSTGRES_HOST}
+${POSTGRES_PORT}
 ${POSTGRES_USER}
 ${POSTGRES_PASSWORD}
-${POSTGRES_DB}
-${POSTGRES_NON_ROOT_USER}
-${POSTGRES_NON_ROOT_PASSWORD}
-${APP_ENV}
-${APP_OPENSSL_KEY}
-${APP_DOMAIN}
-${APP_DOMAIN_TARGET}
-${BASEROW_SECRET_KEY}
+${N8N_DB_USER}
+${N8N_DB_PASSWORD}
+${BASEROW_DB_USER}
 ${BASEROW_DB_PASSWORD}
+${KC_DB_USERNAME}
+${KC_DB_PASSWORD}
+${APPWRITE_ENV}
+${APPWRITE_OPENSSL_KEY}
+${APPWRITE_DOMAIN}
+${APPWRITE_DOMAIN_TARGET}
 ${QDRANT_API_KEY}
 ${MINIO_ROOT_USER}
 ${MINIO_ROOT_PASSWORD}
 ${REDIS_PASSWORD}
-${KEYCLOAK_ADMIN}
-${KEYCLOAK_ADMIN_PASSWORD}
-${KC_DB}
-${KC_DB_URL}
-${KC_DB_USERNAME}
-${KC_DB_PASSWORD}
-${KC_HOSTNAME}
-${KC_PROXY}
 ${RESTIC_PASSWORD}
 ${BACKUP_CRON}
 ${BACKUP_VOLUME_PATH}

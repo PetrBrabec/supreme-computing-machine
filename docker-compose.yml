@@ -6,9 +6,21 @@ services:
       context: ./postgres
       dockerfile: Dockerfile.postgres
     environment:
+      # PostgreSQL admin credentials
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+
+      # N8N database configuration
+      - N8N_DB_USER=${N8N_DB_USER}
+      - N8N_DB_PASSWORD=${N8N_DB_PASSWORD}
+
+      # Baserow database configuration
+      - BASEROW_DB_USER=${BASEROW_DB_USER}
+      - BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
+
+      # Keycloak database configuration
+      - KC_DB_USERNAME=${KC_DB_USERNAME}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d
@@ -36,6 +48,12 @@ services:
       - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
       - _APP_DOMAIN=appwrite.${_APP_DOMAIN}
       - _APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
+      # PostgreSQL Configuration
+      - _APP_DB_HOST=${POSTGRES_HOST}
+      - _APP_DB_PORT=${POSTGRES_PORT}
+      - _APP_DB_USER=${POSTGRES_USER}
+      - _APP_DB_PASS=${POSTGRES_PASSWORD}
+      - _APP_DB_SCHEMA=appwrite
     volumes:
       - appwrite_uploads:/storage/uploads
       - appwrite_cache:/storage/cache
@@ -49,11 +67,11 @@ services:
     image: n8nio/n8n:latest
     environment:
       - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=${N8N_DB_USER}
+      - DB_POSTGRESDB_PASSWORD=${N8N_DB_PASSWORD}
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
@@ -62,8 +80,12 @@ services:
   baserow:
     image: baserow/baserow:1.19.1
     environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - SECRET_KEY=${BASEROW_SECRET_KEY}
+      - DATABASE_HOST=${POSTGRES_HOST}
+      - DATABASE_PORT=${POSTGRES_PORT}
+      - DATABASE_USER=${BASEROW_DB_USER}
+      - DATABASE_PASSWORD=${BASEROW_DB_PASSWORD}
+      - DATABASE_NAME=baserow
     volumes:
       - baserow_data:/baserow/data
     depends_on:
@@ -102,8 +124,7 @@ services:
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-      - KC_DB=${KC_DB}
-      - KC_DB_URL=${KC_DB_URL}
+      - KC_DB_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/keycloak
       - KC_DB_USERNAME=${KC_DB_USERNAME}
       - KC_DB_PASSWORD=${KC_DB_PASSWORD}
       - KC_HOSTNAME=${KC_HOSTNAME}
@@ -118,6 +139,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
+      - DOMAIN=${DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

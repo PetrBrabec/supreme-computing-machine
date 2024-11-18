@@ -1,11 +1,13 @@
 # Use PostgreSQL 16 as the base image
 FROM postgres:16
 
-# Install build dependencies
+# Install build dependencies and PostgreSQL extensions
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     postgresql-server-dev-16 \
+    postgresql-contrib \
+    gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone and build pgvector
@@ -21,4 +23,5 @@ RUN apt-get remove -y \
     build-essential \
     git \
     postgresql-server-dev-16 \
-    && apt-get autoremove -y
+    && apt-get autoremove -y \
+    && apt-get clean

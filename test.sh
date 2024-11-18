@@ -68,9 +68,6 @@ check_variable "SETUP_REPOSITORY"
 echo -e "\n${BLUE}PostgreSQL Configuration${NC}"
 check_variable "POSTGRES_USER"
 check_variable "POSTGRES_PASSWORD"
-check_variable "POSTGRES_DB"
-check_variable "POSTGRES_NON_ROOT_USER"
-check_variable "POSTGRES_NON_ROOT_PASSWORD"
 
 # Test Appwrite Configuration
 echo -e "\n${BLUE}Appwrite Configuration${NC}"

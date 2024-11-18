@@ -52,8 +52,11 @@ prompt_with_default() {
     # Check .default.env first
     local default_value=$(get_default_value "$var_name")
     if [ -n "$default_value" ]; then
-        echo "$default_value"
-        return
+        if [ "$AUTO_YES" = true ] || [ -n "$DOMAIN" ]; then
+            echo "$default_value"
+            return
+        fi
+        default="$default_value"
     fi
 
     # If domain is provided or AUTO_YES is set, use defaults or generate passwords
@@ -148,11 +151,11 @@ echo -e "\n${BLUE}Database Configuration${NC}"
 echo "====================="
 POSTGRES_USER=$(prompt_with_default "PostgreSQL admin username" "postgres")
 POSTGRES_PASSWORD=$(prompt_with_default "PostgreSQL admin password" "$(generate_password)" "POSTGRES_PASSWORD" true)
-POSTGRES_DB=$(prompt_with_default "PostgreSQL initial database" "n8n")
-POSTGRES_NON_ROOT_USER=$(prompt_with_default "PostgreSQL non-root username" "n8n")
-POSTGRES_NON_ROOT_PASSWORD=$(prompt_with_default "PostgreSQL non-root password" "$(generate_password)" "POSTGRES_NON_ROOT_PASSWORD" true)
+N8N_DB_USER=$(prompt_with_default "n8n database username" "n8n")
+N8N_DB_PASSWORD=$(prompt_with_default "n8n database password" "$(generate_password)" "N8N_DB_PASSWORD" true)
 
 BASEROW_SECRET_KEY=$(prompt_with_default "Baserow secret key" "$(generate_key)")
+BASEROW_DB_USER=$(prompt_with_default "Baserow database username" "baserow")
 BASEROW_DB_PASSWORD=$(prompt_with_default "Baserow database password" "$(generate_password)" "BASEROW_DB_PASSWORD" true)
 
 # Keycloak Configuration
@@ -204,9 +207,8 @@ SETUP_REPOSITORY=${SETUP_REPOSITORY}
 # Database Credentials
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-POSTGRES_DB=${POSTGRES_DB}
-POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
-POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+N8N_DB_USER=${N8N_DB_USER}
+N8N_DB_PASSWORD=${N8N_DB_PASSWORD}
 
 # Keycloak Configuration
 KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
@@ -235,6 +237,7 @@ APP_DOMAIN_TARGET=${APP_DOMAIN_TARGET}
 
 # Baserow Configuration
 BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
+BASEROW_DB_USER=${BASEROW_DB_USER}
 BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
 
 # Appwrite Configuration
