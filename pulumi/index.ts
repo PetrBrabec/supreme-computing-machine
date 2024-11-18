@@ -29,26 +29,31 @@ const volume = new hcloud.Volume("backup-volume", {
     size: 10,
     location: location,
     name: "scm-backup",
+}, { 
+    protect: true // Protect the volume from accidental deletion
 });
 
-// Create a new server
+// Create a new server with replaceOnChanges for easy redeployment
 const server = new hcloud.Server("supreme-computing", {
     serverType: serverType,
     image: image,
     location: location,
     sshKeys: sshKeyResources.map(key => key.id),
     userData: cloudInit,
+}, { 
+    replaceOnChanges: ["userData", "image"], // Trigger replacement when cloud-init or image changes
+    deleteBeforeReplace: true // Ensure clean replacement
 });
 
-// Wait for both resources and then attach volume
-server.id.apply(serverId => {
-    volume.id.apply(volumeId => {
-        return new hcloud.VolumeAttachment("backup-volume-attachment", {
-            volumeId: Number(volumeId),
-            serverId: Number(serverId),
-            automount: true,
-        }, { dependsOn: [server, volume] });
-    });
+// Create volume attachment with proper dependencies
+const volumeAttachment = new hcloud.VolumeAttachment("backup-volume-attachment", {
+    volumeId: volume.id.apply(id => Number(id)),
+    serverId: server.id.apply(id => Number(id)),
+    automount: true,
+}, { 
+    dependsOn: [server, volume],
+    deleteBeforeReplace: true, // Ensure volume is detached before server replacement
+    replaceOnChanges: ["serverId"] // Replace attachment when server changes
 });
 
 // Export useful information

@@ -2,7 +2,8 @@
     "name": "pulum",
     "main": "index.ts",
     "scripts": {
-        "redeploy": "pulumi destroy --yes && pulumi up --yes"
+        "redeploy": "pulumi destroy --yes && pulumi up --yes",
+        "refresh": "pulumi refresh --yes"
     },
     "devDependencies": {
         "@types/node": "^18",

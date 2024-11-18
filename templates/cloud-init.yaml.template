@@ -92,7 +92,8 @@ runcmd:
   - docker compose pull
   - docker compose up -d
   
-  # Final notification
+  # Check services and send final notification
+  - ./scripts/check-services.sh
   - |
     ./scripts/notify.sh "✅ *Setup Complete*
     Supreme Computing Machine is now running!
