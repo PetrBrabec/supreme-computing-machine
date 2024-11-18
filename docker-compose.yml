@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     build:
@@ -80,12 +78,19 @@ services:
   baserow:
     image: baserow/baserow:1.19.1
     environment:
-      - SECRET_KEY=${BASEROW_SECRET_KEY}
+      - BASEROW_PUBLIC_URL=https://baserow.${DOMAIN}
+      - BASEROW_AMOUNT_OF_WORKERS=2
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USER=default
+      - REDIS_PROTOCOL=redis
       - DATABASE_HOST=${POSTGRES_HOST}
       - DATABASE_PORT=${POSTGRES_PORT}
+      - DATABASE_NAME=baserow
       - DATABASE_USER=${BASEROW_DB_USER}
       - DATABASE_PASSWORD=${BASEROW_DB_PASSWORD}
-      - DATABASE_NAME=baserow
+      - BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
     volumes:
       - baserow_data:/baserow/data
     depends_on:
@@ -124,6 +129,7 @@ services:
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=${KC_DB}
       - KC_DB_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/keycloak
       - KC_DB_USERNAME=${KC_DB_USERNAME}
       - KC_DB_PASSWORD=${KC_DB_PASSWORD}
