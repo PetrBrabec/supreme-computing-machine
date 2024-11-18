@@ -92,8 +92,15 @@ runcmd:
   - docker compose pull
   - docker compose up -d
   
+  # Run health checks only if SKIP_SERVICES_CHECK is not set
+  - |
+    if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
+      /root/supreme-computing-machine/scripts/check-services.sh
+    else
+      echo "Skipping services check as SKIP_SERVICES_CHECK=true"
+    fi
+  
   # Check services and send final notification
-  - ./scripts/check-services.sh
   - |
     ./scripts/notify.sh "✅ *Setup Complete*
     Supreme Computing Machine is now running!

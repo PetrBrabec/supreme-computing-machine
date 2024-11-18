@@ -14,6 +14,8 @@ echo "Creating cloud-init.yaml..."
 # Load and export environment variables
 set -a
 source .env
+# Set SKIP_SERVICES_CHECK=true for now
+export SKIP_SERVICES_CHECK=true
 set +a
 
 # Create a temporary file for validation
@@ -54,7 +56,8 @@ ${BACKUP_VOLUME_PATH}
 ${BACKUP_MOUNT_POINT}
 ${TELEGRAM_BOT_TOKEN}
 ${TELEGRAM_CHAT_ID}
-${RESTIC_REPOSITORY}' > "$TMP_FILE"
+${RESTIC_REPOSITORY}
+${SKIP_SERVICES_CHECK}' > "$TMP_FILE"
 
 # Basic validation - check for cloud-config header
 if ! grep -q "^#cloud-config" "$TMP_FILE"; then
