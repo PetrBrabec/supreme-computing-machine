@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 // Configuration
-const config = new pulumi.Config();
+const config = new pulumi.Config("supreme-computing");
 const serverType = config.get("serverType") || "cpx11"; // 1 vCPU, 2 GB RAM
 const location = config.get("location") || "fsn1";     // Falkenstein
 const image = config.get("image") || "docker-ce";
@@ -18,7 +18,7 @@ const cloudInit = fs.readFileSync(
 
 // Create SSH key resources for each provided key
 const sshKeyResources = sshKeys.map((keyData, index) => {
-    return new hcloud.SshKey(`ssh-key-${index}`, {
+    return new hcloud.SshKey(`supreme-computing-key-${index}`, {
         publicKey: keyData,
         name: `supreme-computing-key-${index}`,
     });

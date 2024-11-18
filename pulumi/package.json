@@ -1,12 +1,14 @@
 {
-    "name": "pulum",
+    "name": "supreme-computing-machine",
     "main": "index.ts",
     "scripts": {
-        "redeploy": "pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/volumeAttachment:VolumeAttachment::backup-volume-attachment --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --target urn:pulumi:dev::pulum::hcloud:index/sshKey:SshKey::* --yes && pulumi up --yes",
+        "build": "cd ../ && ./build.sh",
+        "redeploy": "npm run build && pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --yes && pulumi up --yes --config-file Pulumi.dev.yaml",
+        "redeploy-all": "npm run build && pulumi destroy --yes --config-file Pulumi.dev.yaml && pulumi up --yes --config-file Pulumi.dev.yaml",
         "refresh": "pulumi refresh --yes"
     },
     "devDependencies": {
-        "@types/node": "^18",
+        "@types/node": "^16",
         "typescript": "^5.0.0"
     },
     "dependencies": {
