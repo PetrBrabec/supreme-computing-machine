@@ -31,11 +31,16 @@ write_files:
       # Baserow Database Configuration
       BASEROW_DB_USER=${BASEROW_DB_USER}
       BASEROW_DB_PASSWORD=${BASEROW_DB_PASSWORD}
+      BASEROW_SECRET_KEY=${BASEROW_SECRET_KEY}
 
       # Keycloak Database Configuration
       KC_DB=${KC_DB}
       KC_DB_USERNAME=${KC_DB_USERNAME}
       KC_DB_PASSWORD=${KC_DB_PASSWORD}
+      KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME=${KC_HOSTNAME}
+      KC_PROXY=${KC_PROXY}
 
       # Appwrite Configuration
       _APP_ENV=${_APP_ENV}
