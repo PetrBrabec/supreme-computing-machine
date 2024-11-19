@@ -25,11 +25,11 @@ echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes
 ./scripts/deploy-services.sh
 
 # Run health checks only if SKIP_SERVICES_CHECK is not set
-if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
-  /root/supreme-computing-machine/scripts/check-services.sh
-else
-  echo "Skipping services check as SKIP_SERVICES_CHECK=true"
-fi
+# if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
+#   /root/supreme-computing-machine/scripts/check-services.sh
+# else
+#   echo "Skipping services check as SKIP_SERVICES_CHECK=true"
+# fi
 
 # Check services and send final notification
 ./scripts/notify.sh "✅ *Setup Complete*

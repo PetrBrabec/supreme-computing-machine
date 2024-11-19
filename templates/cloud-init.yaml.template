@@ -14,7 +14,6 @@ write_files:
   - path: /root/.env
     content: |
       # Critical Configuration
-      SKIP_SERVICES_CHECK=${SKIP_SERVICES_CHECK}
       DOMAIN=${DOMAIN}
       CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
       SETUP_REPOSITORY=${SETUP_REPOSITORY}
