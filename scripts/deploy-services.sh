@@ -1,8 +1,18 @@
 #!/bin/bash
 
+# Stay in the repository root directory
+cd "$(dirname "$0")/.."
+
 # Source environment variables
-source /root/.env
-cd ..
+if [ -f .env ]; then
+    source .env
+elif [ -f /root/.env ]; then
+    source /root/.env
+    cp /root/.env .env
+else
+    echo "No .env file found"
+    exit 1
+fi
 
 # Function to send notification with logs
 send_notification() {
