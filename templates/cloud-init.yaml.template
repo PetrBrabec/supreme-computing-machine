@@ -38,10 +38,10 @@ write_files:
       KC_DB_PASSWORD=${KC_DB_PASSWORD}
 
       # Appwrite Configuration
-      _APP_ENV=${APPWRITE_ENV}
-      _APP_OPENSSL_KEY_V1=${APPWRITE_OPENSSL_KEY}
-      _APP_DOMAIN=${APPWRITE_DOMAIN}
-      _APP_DOMAIN_TARGET=${APPWRITE_DOMAIN_TARGET}
+      _APP_ENV=${_APP_ENV}
+      _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
+      _APP_DOMAIN=${_APP_DOMAIN}
+      _APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
 
       # Qdrant Configuration
       QDRANT_API_KEY=${QDRANT_API_KEY}
@@ -63,57 +63,20 @@ write_files:
       RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
 
 runcmd:
-  # Initial notification
-  - cd /root
-  - git clone ${SETUP_REPOSITORY} supreme-computing-machine
-  - cd supreme-computing-machine
-  - chmod +x scripts/*.sh
-  - ./scripts/notify.sh "🚀 *Server Setup Started*%0AStarting installation of Supreme Computing Machine..."
-  
-  # Configure firewall
-  - ./scripts/notify.sh "🛡️ Configuring firewall..."
-  - ufw default deny incoming
-  - ufw default allow outgoing
-  - ufw allow 22/tcp
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - ufw --force enable
-  
-  # Copy configuration files
-  - ./scripts/notify.sh "📝 Copying configuration files..."
-  - cp /root/.env .env
-  
-  # Mount backup volume and initialize
-  - ./scripts/notify.sh "💾 Mounting backup volume..."
-  - ./scripts/mount-backup-volume.sh
-  
-  # Set up backup cron job
-  - echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
-  
-  # Start services
-  - ./scripts/notify.sh "🚀 Starting services..."
-  - ./scripts/deploy-services.sh
-  
-  # Run health checks only if SKIP_SERVICES_CHECK is not set
-  - |
-    if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
-      /root/supreme-computing-machine/scripts/check-services.sh
-    else
-      echo "Skipping services check as SKIP_SERVICES_CHECK=true"
-    fi
-  
-  # Check services and send final notification
-  - |
-    ./scripts/notify.sh "✅ *Setup Complete*
-    Supreme Computing Machine is now running!
+  # Copy current .env file
+  - cp .env /root/.env
 
-    Services:
-    - Appwrite: https://appwrite.${DOMAIN}
-    - n8n: https://n8n.${DOMAIN}
-    - Baserow: https://baserow.${DOMAIN}
-    - Qdrant: https://qdrant.${DOMAIN}
-    - MinIO: https://minio.${DOMAIN}
-    - Keycloak: https://auth.${DOMAIN}"
+  # Clone repository
+  - cd /root
+  - rm -rf supreme-computing-machine
+  - git clone ${SETUP_REPOSITORY}
+  - cd supreme-computing-machine
+
+  # Make scripts executable
+  - chmod +x scripts/*.sh
+
+  # Run initialization
+  - ./scripts/init-server.sh
 
 power_state:
   mode: reboot

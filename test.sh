@@ -52,12 +52,20 @@ fi
 
 source .env
 
+# Override variables for localhost testing
+export DOMAIN="localhost"
+export _APP_DOMAIN="localhost"
+export _APP_DOMAIN_TARGET="localhost"
+export KC_HOSTNAME="localhost"
+export CADDY_GLOBAL_OPTIONS="debug"
+export CADDY_TLS_OPTIONS="tls internal"
+
 # Start testing
 print_header "Configuration Test"
 
 # Test Domain Configuration
 echo -e "\n${BLUE}Domain Configuration${NC}"
-check_variable "APP_DOMAIN"
+check_variable "_APP_DOMAIN"
 check_variable "CADDY_ACME_EMAIL"
 
 # Test Repository Configuration
@@ -71,9 +79,9 @@ check_variable "POSTGRES_PASSWORD"
 
 # Test Appwrite Configuration
 echo -e "\n${BLUE}Appwrite Configuration${NC}"
-check_variable "APP_ENV"
-check_variable "APP_OPENSSL_KEY"
-check_variable "APP_DOMAIN_TARGET"
+check_variable "_APP_ENV"
+check_variable "_APP_OPENSSL_KEY_V1"
+check_variable "_APP_DOMAIN_TARGET"
 
 # Test Baserow Configuration
 echo -e "\n${BLUE}Baserow Configuration${NC}"
@@ -98,7 +106,6 @@ echo -e "\n${BLUE}Keycloak Configuration${NC}"
 check_variable "KEYCLOAK_ADMIN"
 check_variable "KEYCLOAK_ADMIN_PASSWORD"
 check_variable "KC_DB"
-check_variable "KC_DB_URL"
 check_variable "KC_DB_USERNAME"
 check_variable "KC_DB_PASSWORD"
 check_variable "KC_HOSTNAME"
@@ -123,21 +130,45 @@ if command -v docker &> /dev/null; then
         echo -e "${GREEN}✓ Docker daemon is running${NC}"
     else
         echo -e "${RED}✗ Docker daemon is not running${NC}"
+        exit 1
     fi
 else
     echo -e "${RED}✗ Docker is not installed${NC}"
+    exit 1
 fi
 
-if command -v docker-compose &> /dev/null; then
-    echo -e "${GREEN}✓ Docker Compose is installed${NC}"
+if ! docker compose version &> /dev/null; then
+    echo -e "${RED}✗ Docker Compose V2 is not installed${NC}"
+    exit 1
 else
-    echo -e "${RED}✗ Docker Compose is not installed${NC}"
+    echo -e "${GREEN}✓ Docker Compose V2 is installed${NC}"
+fi
+
+# Start services test
+print_header "Service Deployment Test"
+
+# Start services
+echo -e "\n${BLUE}Starting services...${NC}"
+./scripts/notify.sh "🚀 Starting services for testing..."
+./scripts/deploy-services.sh
+
+# Run health checks
+echo -e "\n${BLUE}Running health checks...${NC}"
+if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
+    ./scripts/check-services.sh
+else
+    echo "Skipping services check as SKIP_SERVICES_CHECK=true"
 fi
 
 # Summary
 print_header "Test Summary"
-echo -e "If all tests passed, your configuration looks good!"
-echo -e "Next steps:"
-echo "1. Make sure all required ports are open on your server"
-echo "2. Ensure your domain DNS is properly configured"
-echo "3. Run the deployment script"
+echo -e "Services have been deployed for testing."
+echo -e "You can access them at:"
+echo -e "- Appwrite: http://appwrite.localhost"
+echo -e "- n8n: http://n8n.localhost"
+echo -e "- Baserow: http://baserow.localhost"
+echo -e "- Qdrant: http://qdrant.localhost"
+echo -e "- MinIO: http://minio.localhost"
+echo -e "- Keycloak: http://auth.localhost"
+echo -e "\nNote: Make sure your /etc/hosts file has entries for these domains pointing to 127.0.0.1"
+echo -e "To stop the services, run: docker compose down"
