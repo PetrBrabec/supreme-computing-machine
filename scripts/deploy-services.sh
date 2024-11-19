@@ -2,6 +2,7 @@
 
 # Source environment variables
 source /root/.env
+cd ..
 
 # Function to send notification with logs
 send_notification() {
