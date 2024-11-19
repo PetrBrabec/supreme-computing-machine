@@ -58,8 +58,15 @@ services:
       - appwrite_config:/storage/config
       - appwrite_certificates:/storage/certificates
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   n8n:
     image: n8nio/n8n:latest
@@ -101,8 +108,15 @@ services:
     volumes:
       - baserow_data:/baserow/data
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/_health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -130,22 +144,28 @@ services:
       timeout: 20s
       retries: 3
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:21.1
-    command: start --optimized
-    environment:
-      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-      - KC_DB=${KC_DB}
-      - KC_DB_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/keycloak
-      - KC_DB_USERNAME=${KC_DB_USERNAME}
-      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
-      - KC_HOSTNAME=${KC_HOSTNAME}
-      - KC_PROXY=${KC_PROXY}
-    volumes:
-      - keycloak_data:/opt/keycloak/data
-    depends_on:
-      - postgres
+  # keycloak:
+  #   image: quay.io/keycloak/keycloak:21.1
+  #   command: >
+  #     /bin/sh -c "
+  #     /opt/keycloak/bin/kc.sh build --db=postgres &&
+  #     /opt/keycloak/bin/kc.sh start-dev --db=postgres --db-url=jdbc:postgresql://postgres:5432/keycloak --db-username=${KC_DB_USERNAME} --db-password=${KC_DB_PASSWORD}"
+  #   environment:
+  #     - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+  #     - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+  #     - KC_HOSTNAME=${KC_HOSTNAME}
+  #     - KC_PROXY=${KC_PROXY}
+  #     - KC_HEALTH_ENABLED=true
+  #   volumes:
+  #     - keycloak_data:/opt/keycloak/data
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   caddy:
     image: caddy:2-alpine
@@ -165,7 +185,7 @@ services:
       - baserow
       - qdrant
       - minio
-      - keycloak
+      # - keycloak
 
 volumes:
   postgres_data:
@@ -178,6 +198,6 @@ volumes:
   baserow_data:
   qdrant_data:
   minio_data:
-  keycloak_data:
+  # keycloak_data:
   caddy_data:
   caddy_config:
