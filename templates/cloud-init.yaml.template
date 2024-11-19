@@ -14,6 +14,7 @@ write_files:
   - path: /root/.env
     content: |
       # Critical Configuration
+      SKIP_SERVICES_CHECK=${SKIP_SERVICES_CHECK}
       DOMAIN=${DOMAIN}
       CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
       SETUP_REPOSITORY=${SETUP_REPOSITORY}
@@ -63,9 +64,6 @@ write_files:
       RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
 
 runcmd:
-  # Copy current .env file
-  - cp .env /root/.env
-
   # Clone repository
   - cd /root
   - rm -rf supreme-computing-machine

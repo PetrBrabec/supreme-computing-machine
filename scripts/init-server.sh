@@ -1,4 +1,8 @@
+# Source environment variables
+source /root/.env
+
 #!/bin/bash
+./scripts/notify.sh "🌱 Creating new server..."
 
 # Configure firewall
 ./scripts/notify.sh "🛡️ Configuring firewall..."
@@ -8,10 +12,6 @@ ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw --force enable
-
-# Copy configuration files
-./scripts/notify.sh "📝 Copying configuration files..."
-cp /root/.env .env
 
 # Mount backup volume and initialize
 ./scripts/notify.sh "💾 Mounting backup volume..."
