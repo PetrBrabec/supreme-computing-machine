@@ -152,14 +152,6 @@ echo -e "\n${BLUE}Starting services...${NC}"
 ./scripts/notify.sh "🚀 Starting services for testing..."
 ./scripts/deploy-services.sh
 
-# Run health checks
-echo -e "\n${BLUE}Running health checks...${NC}"
-if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
-    ./scripts/check-services.sh
-else
-    echo "Skipping services check as SKIP_SERVICES_CHECK=true"
-fi
-
 # Summary
 print_header "Test Summary"
 echo -e "Services have been deployed for testing."

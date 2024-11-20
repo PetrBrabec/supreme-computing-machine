@@ -1,7 +1,14 @@
-# Source environment variables
-source /root/.env
-
 #!/bin/bash
+
+# Source environment variables
+if [ -f /root/.env ]; then
+    source /root/.env
+else
+    ./scripts/notify.sh "❌ *Setup Failed* - Missing .env file"
+    echo "Error: /root/.env file not found"
+    exit 1
+fi
+
 ./scripts/notify.sh "🌱 Creating new server..."
 
 # Configure firewall
@@ -24,13 +31,6 @@ echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes
 ./scripts/notify.sh "🚀 Starting services..."
 ./scripts/deploy-services.sh
 
-# Run health checks only if SKIP_SERVICES_CHECK is not set
-# if [ "${SKIP_SERVICES_CHECK}" != "true" ]; then
-#   /root/supreme-computing-machine/scripts/check-services.sh
-# else
-#   echo "Skipping services check as SKIP_SERVICES_CHECK=true"
-# fi
-
 # Check services and send final notification
 ./scripts/notify.sh "✅ *Setup Complete*
 Supreme Computing Machine is now running!
@@ -40,5 +40,4 @@ Services:
 - n8n: https://n8n.${DOMAIN}
 - Baserow: https://baserow.${DOMAIN}
 - Qdrant: https://qdrant.${DOMAIN}
-- MinIO: https://minio.${DOMAIN}
-- Keycloak: https://auth.${DOMAIN}"
+- MinIO: https://minio.${DOMAIN}"
