@@ -19,6 +19,12 @@ mkdir -p "$BACKUP_MOUNT_POINT"
 # Create restic repository directory
 mkdir -p "$BACKUP_MOUNT_POINT/restic-repo"
 
+# Check if restic is installed, install if not
+if ! command -v restic &> /dev/null; then
+    echo "Restic not found, installing..."
+    apt-get update && apt-get install -y restic
+fi
+
 # Format the volume if it's not already formatted
 if ! blkid "$BACKUP_VOLUME_PATH"; then
     echo "Formatting volume $BACKUP_VOLUME_PATH..."
