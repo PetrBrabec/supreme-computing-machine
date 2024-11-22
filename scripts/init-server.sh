@@ -50,7 +50,6 @@ WantedBy=multi-user.target
 EOL
 
 # Enable and start the service
-systemctl daemon-reload
 systemctl enable docker-compose-supreme.service
 
 # Send final notification
