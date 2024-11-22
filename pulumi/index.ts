@@ -39,10 +39,10 @@ const cloudInitTemplate = fs.readFileSync(
 const envContent = fs.readFileSync(path.join(__dirname, ".env"), 'utf-8');
 const envVariables = parseEnvFile(envContent);
 
-const cloudInit = interpolate(cloudInitTemplate, {
+const cloudInit = volume.id.apply((volumeId) => interpolate(cloudInitTemplate, {
     ...envVariables,
-    BACKUP_VOLUME_PATH: `/dev/disk/by-id/scsi-0HC_Volume_${volume.id}`
-});
+    BACKUP_VOLUME_PATH: `/dev/disk/by-id/scsi-0HC_Volume_${volumeId}`,
+}));
 
 // Create a new server with replaceOnChanges for easy redeployment
 const server = new hcloud.Server("supreme-computing", {

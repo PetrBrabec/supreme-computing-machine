@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Source environment variables
-if [ -f ../.env ]; then
+if [ -f /root/supreme-computing-machine/.env ]; then
     source /root/supreme-computing-machine/.env
 else
     ./scripts/notify.sh "❌ *Setup Failed* - Missing .env file"
-    echo "Error: ../.env file not found"
+    echo "Error: .env file not found"
     exit 1
 fi
 
