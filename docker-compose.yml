@@ -28,6 +28,10 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   redis:
     image: redis:7-alpine
@@ -40,36 +44,44 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
-  appwrite:
-    image: appwrite/appwrite:1.4.3
-    environment:
-      - _APP_ENV=${_APP_ENV}
-      - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
-      - _APP_DOMAIN=appwrite.${_APP_DOMAIN}
-      - _APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
-      # PostgreSQL Configuration
-      - _APP_DB_HOST=${POSTGRES_HOST}
-      - _APP_DB_PORT=${POSTGRES_PORT}
-      - _APP_DB_USER=${POSTGRES_USER}
-      - _APP_DB_PASS=${POSTGRES_PASSWORD}
-      - _APP_DB_SCHEMA=appwrite
-    volumes:
-      - appwrite_uploads:/storage/uploads
-      - appwrite_cache:/storage/cache
-      - appwrite_config:/storage/config
-      - appwrite_certificates:/storage/certificates
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost/v1/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+  # appwrite:
+  #   image: appwrite/appwrite:1.4.3
+  #   environment:
+  #     - _APP_ENV=${_APP_ENV}
+  #     - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
+  #     - _APP_DOMAIN=appwrite.${_APP_DOMAIN}
+  #     - _APP_DOMAIN_TARGET=${_APP_DOMAIN_TARGET}
+  #     # PostgreSQL Configuration
+  #     - _APP_DB_HOST=${POSTGRES_HOST}
+  #     - _APP_DB_PORT=${POSTGRES_PORT}
+  #     - _APP_DB_USER=${POSTGRES_USER}
+  #     - _APP_DB_PASS=${POSTGRES_PASSWORD}
+  #     - _APP_DB_SCHEMA=appwrite
+  #   volumes:
+  #     - appwrite_uploads:/storage/uploads
+  #     - appwrite_cache:/storage/cache
+  #     - appwrite_config:/storage/config
+  #     - appwrite_certificates:/storage/certificates
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     postgres:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--spider", "http://localhost/v1/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 1G
 
   n8n:
     image: n8nio/n8n:latest
@@ -91,6 +103,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   baserow:
     image: baserow/baserow:1.19.1
@@ -121,6 +137,10 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -134,6 +154,10 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   minio:
     image: minio/minio:latest
@@ -149,6 +173,10 @@ services:
       timeout: 20s
       retries: 3
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   # keycloak:
   #   image: quay.io/keycloak/keycloak:21.1
@@ -186,21 +214,25 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - appwrite
+      # - appwrite
       - n8n
       - baserow
       - qdrant
       - minio
       # - keycloak
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
 volumes:
   postgres_data:
   redis_data:
-  appwrite_uploads:
-  appwrite_cache:
-  appwrite_config:
-  appwrite_certificates:
+  # appwrite_uploads:
+  # appwrite_cache:
+  # appwrite_config:
+  # appwrite_certificates:
   n8n_data:
   baserow_data:
   qdrant_data:

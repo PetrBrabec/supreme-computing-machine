@@ -58,7 +58,6 @@ Supreme Computing Machine has been initialized.
 
 Services will be available at:
 - n8n: https://n8n.${DOMAIN}
-- Appwrite: https://appwrite.${DOMAIN}
 - Baserow: https://baserow.${DOMAIN}
 - Qdrant: https://qdrant.${DOMAIN}
 - MinIO: https://minio.${DOMAIN}"
