@@ -31,15 +31,32 @@ ufw --force enable
 # Set up backup cron job
 echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
 
-# Start services
-./scripts/notify.sh "🚀 Starting services..."
-./scripts/deploy-services.sh
+# Create systemd service for Docker Compose
+cat > /etc/systemd/system/docker-compose-supreme.service << EOL
+[Unit]
+Description=Docker Compose Supreme Computing Machine
+Requires=docker.service
+After=docker.service
 
-# Check services and send final notification
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/root/supreme-computing-machine
+ExecStart=/usr/bin/docker compose pull && /usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Enable the service
+systemctl enable docker-compose-supreme.service
+
+# Send final notification
 ./scripts/notify.sh "✅ *Setup Complete*
-Supreme Computing Machine is now running!
+Supreme Computing Machine has been initialized.
 
-Services:
+Services will be available at:
 - n8n: https://n8n.${DOMAIN}
 - Appwrite: https://appwrite.${DOMAIN}
 - Baserow: https://baserow.${DOMAIN}
