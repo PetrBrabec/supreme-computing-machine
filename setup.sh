@@ -197,7 +197,7 @@ REDIS_PASSWORD=$(prompt_with_default "Redis password" "$(generate_password)" "RE
 echo -e "\n${BLUE}Backup Configuration${NC}"
 echo "====================="
 BACKUP_VOLUME_PATH=$(prompt_with_default "Enter Hetzner volume path" "/dev/disk/by-id/scsi-0HC_Volume_101626985" "BACKUP_VOLUME_PATH")
-BACKUP_MOUNT_POINT=$(prompt_with_default "Enter backup mount point" "/mnt/volume-scm-backup" "BACKUP_MOUNT_POINT")
+BACKUP_MOUNT_POINT=$(prompt_with_default "Enter backup mount point" "/mnt/backup" "BACKUP_MOUNT_POINT")
 RESTIC_PASSWORD=$(prompt_with_default "Restic backup password" "$(generate_password)" "RESTIC_PASSWORD" true)
 BACKUP_CRON=$(prompt_with_default "Enter backup cron schedule" "0 1 * * *" "BACKUP_CRON")
 RESTIC_REPOSITORY=$(prompt_with_default "Enter restic repository path" "$BACKUP_MOUNT_POINT/restic-repo" "RESTIC_REPOSITORY")

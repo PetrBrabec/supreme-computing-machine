@@ -65,10 +65,10 @@ source .env
 : ${RESTIC_PASSWORD:=$(hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/urandom | tr -d '\n')}
 : ${BACKUP_CRON:="0 1 * * *"}
 : ${BACKUP_VOLUME_PATH:=/dev/disk/by-id/scsi-0HC_Volume_101626985}
-: ${BACKUP_MOUNT_POINT:=/mnt/volume-scm-backup}
+: ${BACKUP_MOUNT_POINT:=/mnt/backup}
 : ${TELEGRAM_BOT_TOKEN:=}
 : ${TELEGRAM_CHAT_ID:=}
-: ${RESTIC_REPOSITORY:=/mnt/volume-scm-backup/restic-repo}
+: ${RESTIC_REPOSITORY:=/mnt/backup/restic-repo}
 set +a
 
 # Create a temporary file for validation

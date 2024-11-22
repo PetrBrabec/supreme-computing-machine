@@ -1,10 +1,15 @@
 #!/bin/bash
 
 # Source environment variables
-source /root/.env
+source /root/supreme-computing-machine/.env
+
+# Set and export required environment variables for restic
+echo "$RESTIC_PASSWORD" > /root/.restic-pass
+chmod 600 /root/.restic-pass
+export RESTIC_PASSWORD_FILE=/root/.restic-pass
 
 # Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="/root/supreme-computing-machine/scripts"
 
 # Function to send Telegram notification
 send_notification() {
@@ -20,8 +25,8 @@ Error: ${1}"
     send_notification "$error_message"
     
     # Try to restart services if they're down
-    cd /root
-    docker compose up -d
+    cd /root/supreme-computing-machine
+    /usr/bin/docker compose up -d
     
     exit 1
 }
@@ -33,12 +38,15 @@ trap 'handle_error "Unexpected error occurred"' ERR
 send_notification "*🔄 Starting backup process...*"
 
 # Initialize restic repository if not already initialized
-if [ ! -f /mnt/backup/restic-repo/config ]; then
-    restic init --repo /mnt/backup/restic-repo
+if [ ! -f "${RESTIC_REPOSITORY}/config" ]; then
+    echo "Initializing restic repository at ${RESTIC_REPOSITORY}"
+    /usr/bin/restic init \
+        -r "$RESTIC_REPOSITORY" \
+        --password-file /root/.restic-pass
 fi
 
 # Get list of volumes
-VOLUMES=$(docker volume ls --format '{{.Name}}')
+VOLUMES=$(/usr/bin/docker volume ls --format '{{.Name}}')
 
 # Create backup directory
 BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
@@ -46,27 +54,32 @@ BACKUP_DIR="/mnt/backup/docker-volumes/$BACKUP_DATE"
 mkdir -p "$BACKUP_DIR"
 
 # Stop services for consistent backup
-cd /root
-docker compose down
+cd /root/supreme-computing-machine
+/usr/bin/docker compose down
 
-# Backup each volume
+# Copy volumes
 for VOLUME in $VOLUMES; do
     echo "Backing up volume: $VOLUME"
-    mkdir -p "$BACKUP_DIR/$VOLUME"
-    docker run --rm \
-        -v $VOLUME:/source:ro \
-        -v "$BACKUP_DIR/$VOLUME":/backup \
-        ubuntu tar czf /backup/data.tar.gz -C /source .
+    VOLUME_PATH=$(/usr/bin/docker volume inspect "$VOLUME" --format '{{.Mountpoint}}')
+    cp -r "$VOLUME_PATH" "$BACKUP_DIR/"
 done
 
 # Restart services
-docker compose up -d
+/usr/bin/docker compose up -d
 
 # Backup to restic repository
-SNAPSHOT_ID=$(restic -r /mnt/backup/restic-repo backup /mnt/backup/docker-volumes | grep 'snapshot' | awk '{print $2}')
+echo "Creating restic backup..."
+SNAPSHOT_ID=$(/usr/bin/restic \
+    -r "$RESTIC_REPOSITORY" \
+    --password-file /root/.restic-pass \
+    backup /mnt/backup/docker-volumes | grep 'snapshot' | awk '{print $2}')
 
 # Keep last 7 daily, 4 weekly, and 3 monthly backups
-restic -r /mnt/backup/restic-repo forget \
+echo "Pruning old backups..."
+/usr/bin/restic \
+    -r "$RESTIC_REPOSITORY" \
+    --password-file /root/.restic-pass \
+    forget \
     --keep-daily 7 \
     --keep-weekly 4 \
     --keep-monthly 3 \
@@ -77,7 +90,7 @@ cd /mnt/backup/docker-volumes
 ls -t | tail -n +4 | xargs -r rm -rf
 
 # Generate status report
-STATUS_REPORT=$(RESTIC_PASSWORD=$RESTIC_PASSWORD /root/backup-status.sh)
+STATUS_REPORT=$(/root/supreme-computing-machine/scripts/backup-status.sh)
 
 # Format status report for Telegram
 TELEGRAM_REPORT="✅ *Backup completed successfully!*
@@ -89,3 +102,6 @@ $STATUS_REPORT
 
 # Send completion notification with status
 send_notification "$TELEGRAM_REPORT"
+
+# Clean up password file
+rm -f /root/.restic-pass

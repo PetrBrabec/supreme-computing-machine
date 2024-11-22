@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get environment variables
-source /root/.env
+source /root/supreme-computing-machine/.env
 
 # Function to send telegram message
 send_telegram_message() {
@@ -13,7 +13,7 @@ send_telegram_message() {
         "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d "chat_id=${TELEGRAM_CHAT_ID}" \
         -d "text=${formatted_message}" \
-        -d "parse_mode=Markdown"
+        -d "parse_mode=Markdown" > /dev/null
 }
 
 # If message is provided as argument, send it

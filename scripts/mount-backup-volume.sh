@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source environment variables
-source /root/.env
+source /root/supreme-computing-machine/.env
 
 # Ensure required environment variables are set
 if [ -z "$BACKUP_VOLUME_PATH" ]; then
@@ -10,7 +10,7 @@ if [ -z "$BACKUP_VOLUME_PATH" ]; then
 fi
 
 if [ -z "$BACKUP_MOUNT_POINT" ]; then
-    BACKUP_MOUNT_POINT="/mnt/volume-scm-backup"
+    BACKUP_MOUNT_POINT="/mnt/backup"
 fi
 
 # Create backup mount point
