@@ -104,6 +104,7 @@ while getopts "d:y:v" opt; do
             ;;
         v)
             BACKUP_VOLUME_PATH="$OPTARG"
+            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             exit 1
@@ -216,6 +217,8 @@ cat > .env << EOL
 DOMAIN=${DOMAIN}
 CADDY_ACME_EMAIL=${CADDY_ACME_EMAIL}
 SETUP_REPOSITORY=${SETUP_REPOSITORY}
+BACKUP_CRON=${BACKUP_CRON}
+BACKUP_VOLUME_PATH=${BACKUP_VOLUME_PATH}
 
 # PostgreSQL Configuration
 POSTGRES_HOST=postgres
@@ -259,8 +262,6 @@ REDIS_PASSWORD=${REDIS_PASSWORD}
 
 # Backup Configuration
 RESTIC_PASSWORD=${RESTIC_PASSWORD}
-BACKUP_CRON=${BACKUP_CRON}
-BACKUP_VOLUME_PATH=${BACKUP_VOLUME_PATH}
 BACKUP_MOUNT_POINT=${BACKUP_MOUNT_POINT}
 RESTIC_REPOSITORY=${RESTIC_REPOSITORY}
 

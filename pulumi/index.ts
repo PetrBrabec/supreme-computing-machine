@@ -1,8 +1,9 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as hcloud from "@pulumi/hcloud";
-import { local } from "@pulumi/command";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { parseEnvFile } from "./utils/parseEnvFile";
+import { interpolate } from "./utils/interpolate";
 
 // Configuration
 const config = new pulumi.Config("supreme-computing");
@@ -28,14 +29,20 @@ const volume = new hcloud.Volume("backup-volume", {
     protect: true // Protect the volume from accidental deletion
 });
 
-// run ./setup.sh to build the cloud-init.yaml file with .default.env
-local.run({ command: `./setup.sh -v /dev/disk/by-id/scsi-0HC_Volume_${volume.id}`, dir: path.join(__dirname, "../") });
 
 // Read cloud-init template
-const cloudInit = fs.readFileSync(
-    path.join(__dirname, "../build/cloud-init.yaml"),
+const cloudInitTemplate = fs.readFileSync(
+    path.join(__dirname, "templates", "cloud-init.yaml"),
     "utf8"
 );
+
+const envContent = fs.readFileSync(path.join(__dirname, ".env"), 'utf-8');
+const envVariables = parseEnvFile(envContent);
+
+const cloudInit = interpolate(cloudInitTemplate, {
+    ...envVariables,
+    BACKUP_VOLUME_PATH: `/dev/disk/by-id/scsi-0HC_Volume_${volume.id}`
+});
 
 // Create a new server with replaceOnChanges for easy redeployment
 const server = new hcloud.Server("supreme-computing", {

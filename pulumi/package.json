@@ -2,6 +2,7 @@
     "name": "supreme-computing-machine",
     "main": "index.ts",
     "scripts": {
+        "setup": "./setup.sh",
         "build": "cd ../ && ./build.sh",
         "redeploy": "npm run build && pulumi destroy --target urn:pulumi:dev::pulum::hcloud:index/server:Server::supreme-computing --target-dependents --yes && pulumi up --yes --config-file Pulumi.dev.yaml",
         "redeploy-all": "npm run build && pulumi destroy --yes --config-file Pulumi.dev.yaml && pulumi up --yes --config-file Pulumi.dev.yaml",
@@ -12,7 +13,7 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
-        "@pulumi/command": "^1.0.1",
+        "@pulumi/cloudinit": "^1.4.8",
         "@pulumi/hcloud": "^1.21.0",
         "@pulumi/pulumi": "^3.113.0"
     }
