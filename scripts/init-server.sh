@@ -24,9 +24,9 @@ ufw --force enable
 ./scripts/notify.sh "💾 Mounting backup volume..."
 ./scripts/mount-backup-volume.sh
 
-# Check for and restore from backup if available
-./scripts/notify.sh "🔄 Checking for existing backups..."
-./scripts/restore-volumes.sh
+# Check for and init from backup if available
+./scripts/notify.sh "🔄 Checking for existing data..."
+./scripts/init-volumes.sh
 
 # Set up backup cron job
 echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
