@@ -28,8 +28,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   redis:
     image: redis:7-alpine
@@ -42,8 +40,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   appwrite:
     image: appwrite/appwrite:1.4.3
@@ -74,8 +70,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   n8n:
     image: n8nio/n8n:latest
@@ -97,8 +91,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - supreme_network
 
   baserow:
     image: baserow/baserow:1.19.1
@@ -129,8 +121,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -144,8 +134,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   minio:
     image: minio/minio:latest
@@ -161,8 +149,6 @@ services:
       timeout: 20s
       retries: 3
     restart: unless-stopped
-    networks:
-      - supreme_network
 
   # keycloak:
   #   image: quay.io/keycloak/keycloak:21.1
@@ -207,12 +193,6 @@ services:
       - minio
       # - keycloak
     restart: unless-stopped
-    networks:
-      - supreme_network
-
-networks:
-  supreme_network:
-    driver: bridge
 
 volumes:
   postgres_data:

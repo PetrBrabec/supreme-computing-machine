@@ -49,7 +49,8 @@ ExecStop=/usr/bin/docker compose down
 WantedBy=multi-user.target
 EOL
 
-# Enable the service
+# Enable and start the service
+systemctl daemon-reload
 systemctl enable docker-compose-supreme.service
 
 # Send final notification
