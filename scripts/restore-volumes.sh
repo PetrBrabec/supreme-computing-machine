@@ -76,7 +76,7 @@ for VOLUME_DIR in "$RESTORE_DIR"/docker-volumes/*/; do
         docker run --rm \
             -v "$VOLUME_NAME":/target \
             -v "$VOLUME_DIR":/backup \
-            ubuntu bash -c "rm -rf /target/* && cp -a /backup/. /target/"
+            ubuntu bash -c "rm -rf /target/* && cp -a /backup/. /target/ && chown -R root:root /target"
     fi
 done
 
