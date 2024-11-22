@@ -58,10 +58,10 @@ for VOLUME_DIR in "$RESTORE_DIR"/docker-volumes/*/; do
         VOLUME_NAME=$(basename "$VOLUME_DIR")
         echo "Initializing volume: $VOLUME_NAME"
         docker volume create "$VOLUME_NAME" || true
-        docker run --rm \
-            -v "$VOLUME_NAME":/target \
-            -v "$VOLUME_DIR":/backup \
-            ubuntu bash -c "rm -rf /target/* && cp -a /backup/. /target/ && chown -R root:root /target"
+        VOLUME_MOUNTPOINT=$(docker volume inspect "$VOLUME_NAME" --format '{{ .Mountpoint }}')
+        rm -rf "${VOLUME_MOUNTPOINT:?}"/* # Safety check to ensure VOLUME_MOUNTPOINT is not empty
+        rsync -av --inplace --progress "$VOLUME_DIR/" "$VOLUME_MOUNTPOINT/"
+        chown -R root:root "$VOLUME_MOUNTPOINT"
     fi
 done
 
