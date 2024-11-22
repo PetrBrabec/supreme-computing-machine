@@ -1,7 +1,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as hcloud from "@pulumi/hcloud";
-import * as fs from "fs";
-import * as path from "path";
+import { local } from "@pulumi/command";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 // Configuration
 const config = new pulumi.Config("supreme-computing");
@@ -9,12 +10,6 @@ const serverType = config.get("serverType") || "cpx11"; // 1 vCPU, 2 GB RAM
 const location = config.get("location") || "fsn1";     // Falkenstein
 const image = config.get("image") || "docker-ce";
 const sshKeys = config.getObject<string[]>("sshKeys") || [];
-
-// Read cloud-init template
-const cloudInit = fs.readFileSync(
-    path.join(__dirname, "../build/cloud-init.yaml"),
-    "utf8"
-);
 
 // Create SSH key resources for each provided key
 const sshKeyResources = sshKeys.map((keyData, index) => {
@@ -29,9 +24,18 @@ const volume = new hcloud.Volume("backup-volume", {
     size: 10,
     location: location,
     name: "scm-backup",
-}, { 
+}, {
     protect: true // Protect the volume from accidental deletion
 });
+
+// run ./setup.sh to build the cloud-init.yaml file with .default.env
+local.run({ command: `./setup.sh -v /dev/disk/by-id/scsi-0HC_Volume_${volume.id}`, dir: path.join(__dirname, "../") });
+
+// Read cloud-init template
+const cloudInit = fs.readFileSync(
+    path.join(__dirname, "../build/cloud-init.yaml"),
+    "utf8"
+);
 
 // Create a new server with replaceOnChanges for easy redeployment
 const server = new hcloud.Server("supreme-computing", {
@@ -40,7 +44,7 @@ const server = new hcloud.Server("supreme-computing", {
     location: location,
     sshKeys: sshKeyResources.map(key => key.id),
     userData: cloudInit,
-}, { 
+}, {
     replaceOnChanges: ["userData", "image"], // Trigger replacement when cloud-init or image changes
     deleteBeforeReplace: true // Ensure clean replacement
 });
@@ -50,7 +54,7 @@ const volumeAttachment = new hcloud.VolumeAttachment("backup-volume-attachment",
     volumeId: volume.id.apply(id => Number(id)),
     serverId: server.id.apply(id => Number(id)),
     automount: true,
-}, { 
+}, {
     dependsOn: [server, volume],
     deleteBeforeReplace: true, // Ensure volume is detached before server replacement
     replaceOnChanges: ["serverId"] // Replace attachment when server changes

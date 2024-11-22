@@ -12,6 +12,7 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
+        "@pulumi/command": "^1.0.1",
         "@pulumi/hcloud": "^1.21.0",
         "@pulumi/pulumi": "^3.113.0"
     }
