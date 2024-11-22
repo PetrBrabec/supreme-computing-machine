@@ -6,9 +6,6 @@ cd "$(dirname "$0")/.."
 # Source environment variables
 if [ -f .env ]; then
     source .env
-elif [ -f ../.env ]; then
-    source /root/supreme-computing-machine/.env
-    cp ../.env .env
 else
     echo "No .env file found"
     exit 1
