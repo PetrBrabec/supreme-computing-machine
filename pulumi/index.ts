@@ -7,8 +7,8 @@ import { interpolate } from "./utils/interpolate";
 
 // Configuration
 const config = new pulumi.Config("supreme-computing");
-const serverType = config.get("serverType") || "cpx11"; // 1 vCPU, 2 GB RAM
-const location = config.get("location") || "fsn1";     // Falkenstein
+const serverType = config.get("serverType") || "cpx21";
+const location = config.get("location") || "fsn1"; // Falkenstein
 const image = config.get("image") || "docker-ce";
 const sshKeys = config.getObject<string[]>("sshKeys") || [];
 
