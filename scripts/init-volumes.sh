@@ -52,6 +52,9 @@ Snapshot: \`${SNAPSHOT_ID}\`"
 # Restore from restic
 restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass restore "$SNAPSHOT_ID" --target "$RESTORE_DIR"
 
+echo "Debug: Listing restore directory structure:"
+ls -R "$RESTORE_DIR"
+
 VOLUMES_DIR="$RESTORE_DIR/mnt/backup/docker-volumes"
 if [ ! -d "$VOLUMES_DIR" ]; then
     echo "Error: Docker volumes directory not found at $VOLUMES_DIR"
@@ -61,14 +64,24 @@ if [ ! -d "$VOLUMES_DIR" ]; then
     handle_error "Volumes directory not found"
 fi
 
+echo "Debug: Contents of volumes directory:"
+ls -la "$VOLUMES_DIR"
+
 # Initialize each volume
 for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
     if [ -d "$VOLUME_DIR" ]; then
         VOLUME_NAME=$(basename "$VOLUME_DIR")
         DATA_DIR="$VOLUME_DIR/_data"
         
+        echo "Debug: Processing volume: $VOLUME_NAME"
+        echo "Debug: Volume directory contents:"
+        ls -la "$VOLUME_DIR"
+        
         if [ ! -d "$DATA_DIR" ]; then
             echo "Error: Data directory not found at $DATA_DIR"
+            echo "Debug: Parent directory structure:"
+            ls -la "$VOLUMES_DIR"
+            echo "Debug: Volume directory structure:"
             ls -la "$VOLUME_DIR"
             handle_error "Data directory not found"
         fi
