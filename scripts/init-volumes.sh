@@ -52,10 +52,6 @@ Snapshot: \`${SNAPSHOT_ID}\`"
 # Restore from restic
 restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass restore "$SNAPSHOT_ID" --target "$RESTORE_DIR"
 
-# Debug: List backup contents
-echo "Backup contents:"
-ls -R "$RESTORE_DIR"
-
 VOLUMES_DIR="$RESTORE_DIR/mnt/backup/docker-volumes"
 if [ ! -d "$VOLUMES_DIR" ]; then
     echo "Error: Docker volumes directory not found at $VOLUMES_DIR"
@@ -64,9 +60,6 @@ if [ ! -d "$VOLUMES_DIR" ]; then
     ls -la "$RESTORE_DIR/mnt/backup" || true
     handle_error "Volumes directory not found"
 fi
-
-echo "Available volumes in backup:"
-ls -la "$VOLUMES_DIR"
 
 # Initialize each volume
 for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
@@ -81,15 +74,12 @@ for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
         fi
 
         echo "Initializing volume: $VOLUME_NAME"
-        echo "Volume contents:"
-        ls -la "$DATA_DIR"
         
         docker volume create "$VOLUME_NAME" || true
         VOLUME_MOUNTPOINT=$(docker volume inspect "$VOLUME_NAME" --format '{{ .Mountpoint }}')
-        echo "Volume mountpoint: $VOLUME_MOUNTPOINT"
         
         rm -rf "${VOLUME_MOUNTPOINT:?}"/* # Safety check to ensure VOLUME_MOUNTPOINT is not empty
-        rsync -av --inplace --progress "$DATA_DIR/" "$VOLUME_MOUNTPOINT/"
+        rsync -a --inplace "$DATA_DIR/" "$VOLUME_MOUNTPOINT/"
         
         # Set correct permissions for postgres data
         if [[ "$VOLUME_NAME" == *"postgres"* ]]; then
@@ -101,10 +91,6 @@ for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
         fi
     fi
 done
-
-# Debug: List restored volumes
-echo "Restored volumes:"
-docker volume ls
 
 # Cleanup
 rm -rf "$RESTORE_DIR"
