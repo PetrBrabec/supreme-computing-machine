@@ -87,7 +87,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:5678/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5678"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -129,7 +129,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:6333"]
       interval: 10s
       timeout: 5s
       retries: 5
