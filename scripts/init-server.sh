@@ -42,11 +42,10 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/root/supreme-computing-machine
+ExecStartPre=./scripts/notify.sh "🔄 *Server Started* - Starting up the services..."
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
-ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh "✅ **Server Started**
-
-Services are available at:
+ExecStartPost=./scripts/notify.sh "✅ *Server is ready:*
 - n8n: https://n8n.${DOMAIN}
 - Baserow: https://baserow.${DOMAIN}
 - Qdrant: https://qdrant.${DOMAIN}
