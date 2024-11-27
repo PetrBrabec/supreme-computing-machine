@@ -42,7 +42,7 @@ WorkingDirectory=/root/supreme-computing-machine
 ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Server Started* - Starting up the services...'
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
-ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.hedz.app\n- Baserow: https://baserow.hedz.app\n- Qdrant: https://qdrant.hedz.app\n- MinIO: https://minio.hedz.app'
+ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.${DOMAIN}\n- Baserow: https://baserow.${DOMAIN}\n- Qdrant: https://qdrant.${DOMAIN}\n- MinIO: https://minio.${DOMAIN}'
 ExecStop=/usr/bin/docker compose down
 
 [Install]
