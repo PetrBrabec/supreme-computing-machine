@@ -39,14 +39,10 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/root/supreme-computing-machine
-ExecStartPre=./scripts/notify.sh "🔄 *Server Started* - Starting up the services..."
+ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Server Started* - Starting up the services...'
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
-ExecStartPost=./scripts/notify.sh "✅ *Server is ready:*
-- n8n: https://n8n.${DOMAIN}
-- Baserow: https://baserow.${DOMAIN}
-- Qdrant: https://qdrant.${DOMAIN}
-- MinIO: https://minio.${DOMAIN}"
+ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.hedz.app\n- Baserow: https://baserow.hedz.app\n- Qdrant: https://qdrant.hedz.app\n- MinIO: https://minio.hedz.app'
 ExecStop=/usr/bin/docker compose down
 
 [Install]
