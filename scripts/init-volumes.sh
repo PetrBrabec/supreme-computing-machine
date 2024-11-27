@@ -72,19 +72,27 @@ ls -la "$VOLUMES_DIR"
 for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
     if [ -d "$VOLUME_DIR" ]; then
         VOLUME_NAME=$(basename "$VOLUME_DIR")
+        DATA_DIR="$VOLUME_DIR/_data"
+        
+        if [ ! -d "$DATA_DIR" ]; then
+            echo "Error: Data directory not found at $DATA_DIR"
+            ls -la "$VOLUME_DIR"
+            handle_error "Data directory not found"
+        fi
+
         echo "Initializing volume: $VOLUME_NAME"
         echo "Volume contents:"
-        ls -la "$VOLUME_DIR"
+        ls -la "$DATA_DIR"
         
         docker volume create "$VOLUME_NAME" || true
         VOLUME_MOUNTPOINT=$(docker volume inspect "$VOLUME_NAME" --format '{{ .Mountpoint }}')
         echo "Volume mountpoint: $VOLUME_MOUNTPOINT"
         
         rm -rf "${VOLUME_MOUNTPOINT:?}"/* # Safety check to ensure VOLUME_MOUNTPOINT is not empty
-        rsync -av --inplace --progress "$VOLUME_DIR/" "$VOLUME_MOUNTPOINT/"
+        rsync -av --inplace --progress "$DATA_DIR/" "$VOLUME_MOUNTPOINT/"
         
         # Set correct permissions for postgres data
-        if [ "$VOLUME_NAME" = "postgres_data" ]; then
+        if [[ "$VOLUME_NAME" == *"postgres"* ]]; then
             echo "Setting postgres data permissions"
             chown -R 999:999 "$VOLUME_MOUNTPOINT"  # 999 is postgres user in container
             chmod 700 "$VOLUME_MOUNTPOINT"
@@ -104,7 +112,6 @@ rm -f /root/.restic-pass
 
 # Send completion notification
 COMPLETION_MESSAGE="✅ *Volume initialization completed successfully!*
-
 Initialized from snapshot: \`${SNAPSHOT_ID}\`"
 
 send_notification "$COMPLETION_MESSAGE"

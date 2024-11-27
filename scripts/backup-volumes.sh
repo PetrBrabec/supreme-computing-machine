@@ -57,11 +57,17 @@ mkdir -p "$BACKUP_DIR"
 cd /root/supreme-computing-machine
 /usr/bin/docker compose down
 
-# Copy volumes
+# Copy volumes with proper naming
 for VOLUME in $VOLUMES; do
     echo "Backing up volume: $VOLUME"
     VOLUME_PATH=$(/usr/bin/docker volume inspect "$VOLUME" --format '{{.Mountpoint}}')
-    cp -r "$VOLUME_PATH" "$BACKUP_DIR/"
+    
+    # Create volume directory with original name
+    VOLUME_BACKUP_DIR="$BACKUP_DIR/$VOLUME"
+    mkdir -p "$VOLUME_BACKUP_DIR"
+    
+    # Copy data to a _data subdirectory to match Docker's structure
+    cp -r "$VOLUME_PATH" "$VOLUME_BACKUP_DIR/_data"
 done
 
 # Restart services
