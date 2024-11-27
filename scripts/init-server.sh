@@ -42,7 +42,15 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/root/supreme-computing-machine
-ExecStart=/usr/bin/docker compose pull && /usr/bin/docker compose up -d
+ExecStartPre=/usr/bin/docker compose pull
+ExecStart=/usr/bin/docker compose up -d
+ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh "✅ **Server Started**
+
+Services are available at:
+- n8n: https://n8n.${DOMAIN}
+- Baserow: https://baserow.${DOMAIN}
+- Qdrant: https://qdrant.${DOMAIN}
+- MinIO: https://minio.${DOMAIN}"
 ExecStop=/usr/bin/docker compose down
 
 [Install]
@@ -53,11 +61,4 @@ EOL
 systemctl enable docker-compose-supreme.service
 
 # Send final notification
-./scripts/notify.sh "✅ *Setup Complete*
-Supreme Computing Machine has been initialized.
-
-Services will be available at:
-- n8n: https://n8n.${DOMAIN}
-- Baserow: https://baserow.${DOMAIN}
-- Qdrant: https://qdrant.${DOMAIN}
-- MinIO: https://minio.${DOMAIN}"
+./scripts/notify.sh "🔄 *Setup Complete* - Starting up the server..."

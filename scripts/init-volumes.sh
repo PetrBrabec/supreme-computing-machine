@@ -52,12 +52,24 @@ Snapshot: \`${SNAPSHOT_ID}\`"
 # Restore from restic
 restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass restore "$SNAPSHOT_ID" --target "$RESTORE_DIR"
 
-# Debug: List all volumes in backup
+# Debug: List backup contents
+echo "Backup contents:"
+ls -R "$RESTORE_DIR"
+
+VOLUMES_DIR="$RESTORE_DIR/mnt/backup/docker-volumes"
+if [ ! -d "$VOLUMES_DIR" ]; then
+    echo "Error: Docker volumes directory not found at $VOLUMES_DIR"
+    ls -la "$RESTORE_DIR"
+    ls -la "$RESTORE_DIR/mnt"
+    ls -la "$RESTORE_DIR/mnt/backup" || true
+    handle_error "Volumes directory not found"
+fi
+
 echo "Available volumes in backup:"
-ls -la "$RESTORE_DIR/docker-volumes/"
+ls -la "$VOLUMES_DIR"
 
 # Initialize each volume
-for VOLUME_DIR in "$RESTORE_DIR"/docker-volumes/*/; do
+for VOLUME_DIR in "$VOLUMES_DIR"/*/; do
     if [ -d "$VOLUME_DIR" ]; then
         VOLUME_NAME=$(basename "$VOLUME_DIR")
         echo "Initializing volume: $VOLUME_NAME"
