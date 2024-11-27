@@ -3,8 +3,11 @@ package_update: true
 package_upgrade: true
 
 packages:
-  - docker.io
-  - docker-compose
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
   - ufw
   - restic
   - curl
