@@ -12,7 +12,6 @@ fi
 ./scripts/notify.sh "🌱 Creating new server..."
 
 # Configure firewall
-./scripts/notify.sh "🛡️ Configuring firewall..."
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp
@@ -21,11 +20,9 @@ ufw allow 443/tcp
 ufw --force enable
 
 # Mount backup volume and initialize
-./scripts/notify.sh "💾 Mounting backup volume..."
 ./scripts/mount-backup-volume.sh
 
 # Check for and init from backup if available
-./scripts/notify.sh "🔄 Checking for existing data..."
 ./scripts/init-volumes.sh
 
 # Set up backup cron job
