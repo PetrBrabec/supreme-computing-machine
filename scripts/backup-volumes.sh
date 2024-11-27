@@ -78,7 +78,7 @@ echo "Creating restic backup..."
 SNAPSHOT_ID=$(/usr/bin/restic \
     -r "$RESTIC_REPOSITORY" \
     --password-file /root/.restic-pass \
-    backup /mnt/backup/docker-volumes | grep 'snapshot' | awk '{print $2}')
+    backup /mnt/backup/docker-volumes | grep 'snapshot' | awk '{print $3}')
 
 # Keep last 7 daily, 4 weekly, and 3 monthly backups
 echo "Pruning old backups..."
