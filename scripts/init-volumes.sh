@@ -36,7 +36,7 @@ if [ -z "$SNAPSHOTS" ]; then
 fi
 
 # Get the latest snapshot ID
-SNAPSHOT_ID=$(echo "$SNAPSHOTS" | grep "^[a-z0-9]\+" | head -n1 | cut -d' ' -f1)
+SNAPSHOT_ID=$(restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass snapshots --latest 1 --json | jq -r '.[0].id')
 if [ -z "$SNAPSHOT_ID" ]; then
     echo "No valid snapshot ID found - starting fresh"
     rm -f /root/.restic-pass
