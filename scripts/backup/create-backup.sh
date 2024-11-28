@@ -84,9 +84,7 @@ echo "Available snapshots:"
 STATUS_REPORT=$(${SCRIPT_DIR}/backup/backup-status.sh)
 
 # Format status report for Telegram
-TELEGRAM_REPORT="✅ *Backup completed successfully!*
-Latest snapshot ID: \`$SNAPSHOT_ID\`
-
+TELEGRAM_REPORT="✅ *Backup Complete* (snapshot: \`$SNAPSHOT_ID\`)
 \`\`\`
 $STATUS_REPORT
 \`\`\`"

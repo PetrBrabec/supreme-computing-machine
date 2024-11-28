@@ -31,7 +31,7 @@ chmod 600 /root/.restic-pass
 SNAPSHOTS=$(restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass snapshots 2>/dev/null || true)
 if [ -z "$SNAPSHOTS" ]; then
     echo "No snapshots found in repository - starting fresh"
-    send_notification "⚠ *No snapshots found - starting fresh*"
+    send_notification "⚠ *Starting fresh*"
     rm -f /root/.restic-pass
     exit 0
 fi
@@ -40,6 +40,7 @@ fi
 SNAPSHOT_ID=$(restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass snapshots | grep '^[a-f0-9]\{8\}' | tail -n1 | awk '{print $1}')
 if [ -z "$SNAPSHOT_ID" ]; then
     echo "No valid snapshot ID found - starting fresh"
+    send_notification "⚠ *Starting fresh*"
     rm -f /root/.restic-pass
     exit 0
 fi

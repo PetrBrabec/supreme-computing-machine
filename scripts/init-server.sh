@@ -9,7 +9,7 @@ else
     exit 1
 fi
 
-./scripts/notify.sh "🌱 Creating new server"
+./scripts/notify.sh "🌱 *Creating new server*"
 
 # Configure firewall
 ufw default deny incoming
@@ -39,7 +39,7 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/root/supreme-computing-machine
-ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Starting the services*'
+ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Starting services*'
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
 ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.${DOMAIN}\n- Baserow: https://baserow.${DOMAIN}\n- Qdrant: https://qdrant.${DOMAIN}\n- MinIO: https://minio.${DOMAIN}'
@@ -53,4 +53,4 @@ EOL
 systemctl enable docker-compose-supreme.service
 
 # Send final notification
-./scripts/notify.sh "🔄 *Setup Complete* - Starting up the server..."
+./scripts/notify.sh "🔄 *Initialized*"
