@@ -5,11 +5,11 @@ set -e
 source /root/supreme-computing-machine/.env
 
 # Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 # Function to send notification
 send_notification() {
-    "${SCRIPT_DIR}/notify.sh" "$1"
+    "${SCRIPT_DIR}/scripts/notify.sh" "$1"
 }
 
 # Error handling function
@@ -38,7 +38,16 @@ if [ -z "$DEVICE" ]; then
 fi
 
 # Unmount the volume
+echo "Unmounting backup volume..."
 umount /mnt/backup
+
+# Wait for the device to be fully unmounted
+sleep 2
+
+# Verify it's unmounted
+if mountpoint -q /mnt/backup; then
+    handle_error "Failed to unmount backup volume"
+fi
 
 # Zero out the first 100MB of the volume (enough to clear the filesystem)
 echo "Zeroing backup volume..."
@@ -49,7 +58,13 @@ echo "Creating new filesystem..."
 mkfs.ext4 "$DEVICE"
 
 # Mount the volume back
+echo "Mounting backup volume..."
 mount "$DEVICE" /mnt/backup
+
+# Ensure mounted successfully
+if ! mountpoint -q /mnt/backup; then
+    handle_error "Failed to mount backup volume after formatting"
+fi
 
 # Send completion notification
 send_notification "✅ *Backup volume purged*"
