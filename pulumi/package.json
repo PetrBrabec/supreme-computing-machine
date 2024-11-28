@@ -8,7 +8,8 @@
         "up": "pulumi up --yes --config-file Pulumi.dev.yaml",
         "redeploy": "npm run destroy && npm run up",
         "redeploy-all": "npm run destroy-all && npm run up",
-        "refresh": "pulumi refresh --yes"
+        "refresh": "pulumi refresh --yes",
+        "backup": "ssh hetzner_root /root/supreme-computing-machine/scripts/backup/create-backup.sh"
     },
     "devDependencies": {
         "@types/node": "^16",

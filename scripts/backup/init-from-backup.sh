@@ -14,7 +14,7 @@ send_notification() {
 
 # Error handling function
 handle_error() {
-    send_notification "❌ *Volume Init Failed*
+    send_notification "❌ *Initialization Failed*
 
 Error: ${1}"
     exit 1
@@ -56,8 +56,5 @@ restic -r "$RESTIC_REPOSITORY" --password-file /root/.restic-pass restore "$SNAP
 
 # Clean up
 rm -f /root/.restic-pass
-
-# Send completion notification
-COMPLETION_MESSAGE="✅ *Initialization successful* (snapshot: \`${SNAPSHOT_ID}\`)"
 
 send_notification "$COMPLETION_MESSAGE"
