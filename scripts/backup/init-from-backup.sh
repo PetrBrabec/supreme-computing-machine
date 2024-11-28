@@ -9,7 +9,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Function to send notification
 send_notification() {
-    "${SCRIPT_DIR}/notify.sh" "$1"
+    "${SCRIPT_DIR}/../notify.sh" "$1"
 }
 
 # Error handling function
