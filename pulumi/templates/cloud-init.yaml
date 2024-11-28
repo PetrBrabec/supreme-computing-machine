@@ -80,6 +80,7 @@ runcmd:
 
   # Make scripts executable
   - chmod +x scripts/*.sh
+  - chmod +x scripts/*/*.sh
 
   # Run initialization
   - ./scripts/init-server.sh

@@ -7,7 +7,7 @@ source /root/supreme-computing-machine/.env
 send_telegram_message() {
     local message="$1"
     local hostname=$(hostname | sed -e 's/^supreme-computing-//')
-    local formatted_message="🖥️ *$hostname* - $message"
+    local formatted_message="🖥️ *$hostname* $message"
     
     curl -s -X POST \
         "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \

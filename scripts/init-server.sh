@@ -9,7 +9,7 @@ else
     exit 1
 fi
 
-./scripts/notify.sh "🌱 Creating new server..."
+./scripts/notify.sh "🌱 Creating new server"
 
 # Configure firewall
 ufw default deny incoming
@@ -20,13 +20,13 @@ ufw allow 443/tcp
 ufw --force enable
 
 # Mount backup volume and initialize
-./scripts/mount-backup-volume.sh
+./scripts/backup/mount-backup-volume.sh
 
 # Check for and init from backup if available
-./scripts/init-volumes.sh
+./scripts/backup/init-from-backup.sh
 
 # Set up backup cron job
-echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup-volumes.sh >> /var/log/volume-backup.log 2>&1" > /etc/cron.d/volume-backup
+echo "${BACKUP_CRON} root /root/supreme-computing-machine/scripts/backup/create-backup.sh >> /var/log/backup_cron.log 2>&1" > /etc/cron.d/volume-backup
 
 # Create systemd service for Docker Compose
 cat > /etc/systemd/system/docker-compose-supreme.service << EOL
@@ -39,7 +39,7 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/root/supreme-computing-machine
-ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Server Started* - Starting up the services...'
+ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Starting the services*'
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
 ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.${DOMAIN}\n- Baserow: https://baserow.${DOMAIN}\n- Qdrant: https://qdrant.${DOMAIN}\n- MinIO: https://minio.${DOMAIN}'
