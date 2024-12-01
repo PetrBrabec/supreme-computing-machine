@@ -85,6 +85,12 @@ services:
       - DB_POSTGRESDB_PASSWORD=${N8N_DB_PASSWORD}
       - TZ=${TZ:-Europe/Prague}
       - GENERIC_TIMEZONE=${TZ:-Europe/Prague}
+      - N8N_HOST=n8n.${DOMAIN}
+      - N8N_PROTOCOL=https
+      - N8N_PORT=5678
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.${DOMAIN}/
+      - WEBHOOK_TUNNEL_URL=https://n8n.${DOMAIN}/
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
