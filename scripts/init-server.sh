@@ -43,7 +43,9 @@ ExecStartPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Starting s
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
 ExecStartPost=/root/supreme-computing-machine/scripts/notify.sh '✅ *Server is ready:*\n- n8n: https://n8n.${DOMAIN}\n- Baserow: https://baserow.${DOMAIN}\n- Qdrant: https://qdrant.${DOMAIN}\n- MinIO: https://minio.${DOMAIN}'
+ExecStopPre=/root/supreme-computing-machine/scripts/notify.sh '🔄 *Stopping services*'
 ExecStop=/usr/bin/docker compose down
+ExecStopPost=/root/supreme-computing-machine/scripts/notify.sh '🛑 *Services stopped*'
 
 [Install]
 WantedBy=multi-user.target
